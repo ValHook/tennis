@@ -246,8 +246,10 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
     }
     return StatusOr.Error("Failed to create fixtures with the given constraints.");
 }
+var session = undefined;
 function main() {
-    const session = SessionFromInput();
+    session = session || SessionFromInput();
+    document.getElementById("regenerate")?.classList.remove("d-none");
     const roaster = {
         fixtures: Array(session.stages.length).fill(undefined)
             .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))

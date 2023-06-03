@@ -293,11 +293,13 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
         return StatusOr.Error<Rotation[]>("Failed to create fixtures with the given constraints.");
 }
 
+var session: Session|undefined = undefined;
 function main() {
-    const session = SessionFromInput();
+    session = session || SessionFromInput();
+    document.getElementById("regenerate")?.classList.remove("d-none");
     const roaster: Roaster = {
         fixtures: Array(session.stages.length).fill(undefined)
-            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))
+            .map((_, i) => FixturesFromStage(session!.stages[i], session!.players, Date.now()))
     };
     Fail(roaster);
 }
