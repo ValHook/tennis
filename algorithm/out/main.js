@@ -248,9 +248,10 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
 }
 function main() {
     const session = SessionFromInput();
-    for (const stage of session.stages) {
-        const fixtures = FixturesFromStage(stage, session.players, Date.now());
-        Fail(fixtures);
-    }
+    const roaster = {
+        fixtures: Array(session.stages.length).fill(undefined)
+            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))
+    };
+    Fail(roaster);
 }
 window.onload = main;

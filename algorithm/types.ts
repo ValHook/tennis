@@ -1,3 +1,5 @@
+import { StatusOr } from "./status";
+
 export interface Court {
     id: number;
     availability_minutes: number;
@@ -47,6 +49,10 @@ export interface Rotation {
 
 export interface Fixtures {
     rotations: Rotation[];
+}
+
+export interface Roaster {
+    fixtures: StatusOr<Fixtures>[];
 }
 
 export interface Constraints {

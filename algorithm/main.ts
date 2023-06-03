@@ -1,7 +1,7 @@
 import {
     Court, Player, Stage, Session, Fixtures, Constraints, ConstraintGauges,
     PairwiseKey, PairwiseKeyFromNames, CopyGauges, Rotation, ValidateGauges,
-    MatchSingle, MatchDouble, ClockDownCooldowns
+    MatchSingle, MatchDouble, ClockDownCooldowns, Roaster
 } from "./types";
 import { Fail, Prompt, PromptInt } from "./prompt";
 import { MAX_SIMULATIONS_PER_NODE } from "./constants";
@@ -295,10 +295,11 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
 
 function main() {
     const session = SessionFromInput();
-    for (const stage of session.stages) {
-        const fixtures = FixturesFromStage(stage, session.players, Date.now());
-        Fail(fixtures);
-    }
+    const roaster: Roaster = {
+        fixtures: Array(session.stages.length).fill(undefined)
+            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))
+    };
+    Fail(roaster);
 }
 
 window.onload = main;
