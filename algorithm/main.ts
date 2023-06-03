@@ -3,7 +3,7 @@ import {
     PairwiseKey, PairwiseKeyFromNames, CopyGauges, Rotation, ValidateGauges,
     MatchSingle, MatchDouble, ClockDownCooldowns
 } from "./types";
-import { Prompt, PromptInt } from "./prompt";
+import { Fail, Prompt, PromptInt } from "./prompt";
 import { MATCH_DURATION_MINUTES, MAX_SIMULATIONS_PER_NODE } from "./constants";
 import { StatusOr } from "./status";
 import { Rng, Mulberry32, PopRandomElement } from "./rng";
@@ -21,7 +21,6 @@ function SessionFromInput(): Session {
     courts.sort((a, b) => b.availability_minutes - a.availability_minutes);
     courts.forEach((c, i) => c.id = i);
     
-    console.log("");
     const players: Player[] = [];
     const allowed_durations = new Set(courts.map(c=>c.availability_minutes));
     const remaining_court_gauges = Array(n_courts).fill(2);
@@ -30,7 +29,6 @@ function SessionFromInput(): Session {
     const max_minutes = courts[0].availability_minutes;
     const player_names = new Set();
     for (let i = 0; i < n_players; ++i) {
-        console.log("");
         const player = {
             id: i,
             name: Prompt("Player #" + (i+1) + " name?"),
@@ -296,13 +294,10 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
 
 function main() {
     const session = SessionFromInput();
-
-    console.log("");
     for (const stage of session.stages) {
         const fixtures = FixturesFromStage(stage, session.players, Date.now());
-        console.dir(fixtures, {depth: null});
-        console.log("");
+        Fail(fixtures);
     }
 }
 
-main();
+window.onload = main;

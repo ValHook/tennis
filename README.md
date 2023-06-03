@@ -1,4 +1,4 @@
-# Tennis Fixtures Generator
+# Tennis Roaster Generator
 
 Install Typescript
 ```
