@@ -1,5 +1,4 @@
 export function Prompt(ask) {
-    ask += " ";
     const result = (window.prompt(ask) || "").replace(/\s/g, "");
     if (!result.length) {
         Fail("Not a valid string");
@@ -7,7 +6,6 @@ export function Prompt(ask) {
     return result;
 }
 export function PromptInt(ask, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER, set = undefined) {
-    ask += " ";
     const result = parseInt(window.prompt(ask) || "");
     if (isNaN(result)) {
         Fail("Not a valid number");

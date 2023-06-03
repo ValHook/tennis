@@ -1,2 +1,1 @@
-export const MATCH_DURATION_MINUTES = 10;
 export const MAX_SIMULATIONS_PER_NODE = 1000;

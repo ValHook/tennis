@@ -4,18 +4,19 @@ import {
     MatchSingle, MatchDouble, ClockDownCooldowns
 } from "./types";
 import { Fail, Prompt, PromptInt } from "./prompt";
-import { MATCH_DURATION_MINUTES, MAX_SIMULATIONS_PER_NODE } from "./constants";
+import { MAX_SIMULATIONS_PER_NODE } from "./constants";
 import { StatusOr } from "./status";
 import { Rng, Mulberry32, PopRandomElement } from "./rng";
 
 function SessionFromInput(): Session {
     const courts: Court[] = [];
+    const match_duration_minutes = PromptInt("Average match duration in minutes?");
     const n_courts = PromptInt("How many courts?", 1);
     for (let i = 0; i < n_courts; ++i) {
         courts.push({
             id: i+1,
             availability_minutes: 
-                PromptInt("Court #" + (i+1) + " minutes?", MATCH_DURATION_MINUTES)
+                PromptInt("Court #" + (i+1) + " availability in minutes?", match_duration_minutes)
         });
     }
     courts.sort((a, b) => b.availability_minutes - a.availability_minutes);
@@ -32,11 +33,11 @@ function SessionFromInput(): Session {
         const player = {
             id: i,
             name: Prompt("Player #" + (i+1) + " name?"),
-            availability_minutes: PromptInt("Player #" + (i+1) + " minutes?", 
+            availability_minutes: PromptInt("Player #" + (i+1) + " availability in minutes?", 
                                             min_minutes, max_minutes, allowed_durations)
         };
         if (player_names.has(player.name)) {
-            throw new Error("All players must have distinct names");
+            Fail("All players must have distinct names");
         }
         player_names.add(player.name);
         for (let j = 0; j < n_courts; ++j) {
@@ -52,7 +53,7 @@ function SessionFromInput(): Session {
         const remaining_players = n_players - i - 1;
         const unfilled_gauge = remaining_court_gauges.reduce((t, q) => t + q, 0);
         if (remaining_players < unfilled_gauge) {
-            throw new Error("Not enough remaining players to correctly utilize all the courts");
+            Fail("Not enough remaining players to correctly utilize all the courts");
         }
         players.push(player);
     }
@@ -73,7 +74,7 @@ function SessionFromInput(): Session {
         if (remaining_players == -1) {
             remaining_players = n_players;
         }
-        const n_rotations = Math.floor(duration/MATCH_DURATION_MINUTES); 
+        const n_rotations = Math.floor(duration/match_duration_minutes); 
         const stage: Stage = {
             id: i+1,
             start_minutes,
