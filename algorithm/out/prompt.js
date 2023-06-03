@@ -10,11 +10,8 @@ export function PromptInt(ask, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_S
     if (isNaN(result)) {
         Fail("Not a valid number");
     }
-    if (result < min) {
-        Fail("Number must be >= " + min);
-    }
-    if (result > max) {
-        Fail("Number must be <= " + max);
+    if (result < min || result > max) {
+        Fail("Number must be >= " + min + " and <= " + max);
     }
     if (set && !set.has(result)) {
         Fail("Number must be one of " + Array.from(set).join(", "));
