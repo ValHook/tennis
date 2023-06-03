@@ -54,5 +54,12 @@ export function ValidateGauges(gauges, constraints) {
         constraints.pairwise_single_cooldown,
         constraints.pairwise_double_cooldown,
     ];
-    return maps.every((map, i) => [...map.values()].every(v => v <= maxes[i]));
+    const pairwise_maxes = [
+        gauges.pairwise_single_max,
+        gauges.pairwise_double_max,
+    ].map(map => [...map.values()]);
+    console.log(pairwise_maxes);
+    const max_and_cooldowns_ok = maps.every((map, i) => [...map.values()].every(v => v <= maxes[i]));
+    const diversity_ok = pairwise_maxes.every(maxes => Math.max(...maxes) < Math.min(...maxes) + 2);
+    return max_and_cooldowns_ok && diversity_ok;
 }
