@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "outDir": "./out",
+    "outDir": "./generated",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,

@@ -51,7 +51,7 @@ export interface Fixtures {
     rotations: Rotation[];
 }
 
-export interface Roaster {
+export interface Roster {
     fixtures: StatusOr<Fixtures>[];
 }
 

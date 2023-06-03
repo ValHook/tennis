@@ -1,7 +1,7 @@
 import {
     Court, Player, Stage, Session, Fixtures, Constraints, ConstraintGauges,
     PairwiseKey, PairwiseKeyFromNames, CopyGauges, Rotation, ValidateGauges,
-    MatchSingle, MatchDouble, ClockDownCooldowns, Roaster
+    MatchSingle, MatchDouble, ClockDownCooldowns, Roster
 } from "./types";
 import { Fail, Prompt, PromptInt } from "./prompt";
 import { MAX_SIMULATIONS_PER_NODE } from "./constants";
@@ -297,7 +297,7 @@ var session: Session|undefined = undefined;
 function main() {
     session = session || SessionFromInput();
     document.getElementById("regenerate")?.classList.remove("d-none");
-    const roaster: Roaster = {
+    const roaster: Roster = {
         fixtures: Array(session.stages.length).fill(undefined)
             .map((_, i) => FixturesFromStage(session!.stages[i], session!.players, Date.now()))
     };
