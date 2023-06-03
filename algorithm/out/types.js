@@ -62,3 +62,4 @@ export function ValidateGauges(gauges, constraints) {
     const diversity_ok = pairwise_counters.every(c => Math.max(...c) < Math.min(...c) + 2);
     return max_and_cooldowns_ok && diversity_ok;
 }
+//# sourceMappingURL=types.js.map

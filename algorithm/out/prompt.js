@@ -24,3 +24,4 @@ export function Fail(input) {
     document.getElementById("out").innerText = error;
     throw new Error("Stopped execution.");
 }
+//# sourceMappingURL=prompt.js.map

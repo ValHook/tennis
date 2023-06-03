@@ -52,3 +52,4 @@ export class StatusOr {
     object_;
 }
 ;
+//# sourceMappingURL=status.js.map

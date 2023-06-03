@@ -255,3 +255,4 @@ function main() {
     Fail(roaster);
 }
 window.onload = main;
+//# sourceMappingURL=main.js.map

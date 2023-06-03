@@ -9,3 +9,4 @@ export function Mulberry32(seed) {
 export function PopRandomElement(arr, rng) {
     return arr.splice(Math.floor(rng() * arr.length), 1)[0];
 }
+//# sourceMappingURL=rng.js.map
