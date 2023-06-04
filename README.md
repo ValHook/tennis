@@ -20,7 +20,7 @@ npm install -g typescript
 
 Then write your changes in `ts/` and compile them by executing:
 ```
-./algorithm/compile.sh (currently for Mac only).
+./ts/compile.sh (currently for Mac only).
 ```
 It doesn't matter which directory you execute the shell script from.  
 This regenerates the `ts/generated` directory which the `index.html` page is configured to load.
