@@ -251,62 +251,7 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
 }
 var session = undefined;
 function main() {
-    session = {
-        "courts": [
-            {
-                "id": 0,
-                "availability_minutes": 20
-            },
-            {
-                "id": 1,
-                "availability_minutes": 60
-            }
-        ],
-        "players": [
-            {
-                "name": "Paul",
-                "availability_minutes": 20
-            },
-            {
-                "name": "Maggie",
-                "availability_minutes": 60
-            },
-            {
-                "name": "Iza",
-                "availability_minutes": 60
-            },
-            {
-                "name": "Val",
-                "availability_minutes": 60
-            }
-        ],
-        "stages": [
-            {
-                "id": 0,
-                "start_minutes": 0,
-                "end_minutes": 20,
-                "n_rotations": 2,
-                "n_matches": 4,
-                "n_players": 4,
-                "n_courts": 2,
-                "n_single_courts": 2,
-                "n_double_courts": 0,
-                "n_resting_players_per_rotation": 0
-            },
-            {
-                "id": 1,
-                "start_minutes": 20,
-                "end_minutes": 60,
-                "n_rotations": 4,
-                "n_matches": 4,
-                "n_players": 3,
-                "n_courts": 1,
-                "n_single_courts": 1,
-                "n_double_courts": 0,
-                "n_resting_players_per_rotation": 1
-            }
-        ]
-    }; //session || SessionFromInput();
+    session = session || SessionFromInput();
     document.getElementById("regenerate")?.classList.remove("d-none");
     const roster = {
         fixtures: Array(session.stages.length).fill(undefined)
