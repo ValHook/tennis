@@ -1,3 +1,4 @@
+import { MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA } from "./constants";
 import { StatusOr } from "./status";
 
 export interface Court {
@@ -102,22 +103,22 @@ export function CopyGauges(gauges: ConstraintGauges): ConstraintGauges {
 }
 
 export function ClockDownCooldowns(gauges: ConstraintGauges, constraints: Constraints) {
-    const maps = [
+    const cooldowns = [
         gauges.resting_cooldown,
         gauges.single_cooldown,
         gauges.double_cooldown,
         gauges.pairwise_single_cooldown,
         gauges.pairwise_double_cooldown,
     ];
-    maps.forEach(map => {
-        map.forEach((v, k) => {
-            map.set(k, v - 1);
+    cooldowns.forEach(cooldown => {
+        cooldown.forEach((v, k) => {
+            cooldown.set(k, v - 1);
         });
     })
 }
 
 export function ValidateGauges(gauges: ConstraintGauges, constraints: Constraints) {
-    const maps = [
+    const all_gauges = [
         gauges.resting_max,
         gauges.single_max,
         gauges.double_max,
@@ -129,7 +130,11 @@ export function ValidateGauges(gauges: ConstraintGauges, constraints: Constraint
         gauges.pairwise_single_cooldown,
         gauges.pairwise_double_cooldown,
     ];
-    const maxes = [
+    const pairwise_gauges = [
+        gauges.pairwise_single_max,
+        gauges.pairwise_double_max,
+    ]
+    const all_constraints = [
         constraints.resting_max,
         constraints.single_max,
         constraints.double_max,
@@ -141,11 +146,13 @@ export function ValidateGauges(gauges: ConstraintGauges, constraints: Constraint
         constraints.pairwise_single_cooldown,
         constraints.pairwise_double_cooldown,
     ];
-    const pairwise_counters = [
-        gauges.pairwise_single_max,
-        gauges.pairwise_double_max,
-    ].map(map => [...map.values()]);
-    const max_and_cooldowns_ok = maps.every((map, i)=>[...map.values()].every(v => v <= maxes[i]));
-    const diversity_ok = pairwise_counters.every(c => Math.max(...c) < Math.min(...c) + 2);
+    const max_and_cooldowns_ok = all_gauges
+        .every((gauge, i) => [...gauge.values()].every(value => value <= all_constraints[i]));
+    const diversity_ok = pairwise_gauges
+        .map(gauge => [...gauge.values()])
+        .every(values => {
+            return Math.max(...values) <= 
+                    Math.min(...values) + MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA
+        });
     return max_and_cooldowns_ok && diversity_ok;
 }

@@ -4,7 +4,7 @@ import {
     MatchSingle, MatchDouble, ClockDownCooldowns, Roster
 } from "./types";
 import { Fail, Prompt, PromptInt } from "./prompt";
-import { MAX_SIMULATIONS_PER_NODE } from "./constants";
+import { MAX_SIMULATIONS_PER_NODE, NUM_PLAYERS_DOUBLE, NUM_PLAYERS_SINGLE } from "./constants";
 import { StatusOr } from "./status";
 import { Rng, Mulberry32, PopRandomElement } from "./rng";
 
@@ -14,24 +14,23 @@ function SessionFromInput(): Session {
     const n_courts = PromptInt("How many courts?", 1);
     for (let i = 0; i < n_courts; ++i) {
         courts.push({
-            id: i+1,
+            id: i,
             availability_minutes: 
                 PromptInt("Court #" + (i+1) + " availability in minutes?", match_duration_minutes)
         });
     }
-    courts.sort((a, b) => b.availability_minutes - a.availability_minutes);
+    courts.sort((a, b) => a.availability_minutes - b.availability_minutes);
     courts.forEach((c, i) => c.id = i);
     
     const players: Player[] = [];
     const allowed_durations = new Set(courts.map(c=>c.availability_minutes));
-    const remaining_court_gauges = Array(n_courts).fill(2);
-    const n_players = PromptInt("How many players?", n_courts*2);
-    const min_minutes = courts[n_courts-1].availability_minutes;
-    const max_minutes = courts[0].availability_minutes;
+    const court_utilizations = Array<number>(n_courts).fill(0);
+    const n_players = PromptInt("How many players?", n_courts*NUM_PLAYERS_SINGLE);
+    const min_minutes = courts[0].availability_minutes;
+    const max_minutes = courts[n_courts-1].availability_minutes;
     const player_names = new Set();
     for (let i = 0; i < n_players; ++i) {
         const player = {
-            id: i,
             name: Prompt("Player #" + (i+1) + " name?"),
             availability_minutes: PromptInt("Player #" + (i+1) + " availability in minutes?", 
                                             min_minutes, max_minutes, allowed_durations)
@@ -40,43 +39,46 @@ function SessionFromInput(): Session {
             Fail("All players must have distinct names");
         }
         player_names.add(player.name);
-        for (let j = 0; j < n_courts; ++j) {
-            if (remaining_court_gauges[j] == 0) {
+        for (let j = n_courts - 1; j >= 0; --j) {
+            if (court_utilizations[j] == NUM_PLAYERS_SINGLE) {
                 continue;
             }
             if (courts[j].availability_minutes > player.availability_minutes) {
                 continue;
             }
-            remaining_court_gauges[j] -= 1;
+            court_utilizations[j] += 1;
             break;
         }
         const remaining_players = n_players - i - 1;
-        const unfilled_gauge = remaining_court_gauges.reduce((t, q) => t + q, 0);
-        if (remaining_players < unfilled_gauge) {
+        const court_underutilization = court_utilizations
+            .reduce((total, utilization) => total + (utilization - NUM_PLAYERS_SINGLE), 0);
+        if (remaining_players < court_underutilization) {
             Fail("Not enough remaining players to correctly utilize all the courts");
         }
         players.push(player);
     }
-    players.sort((a, b) => b.availability_minutes - a.availability_minutes);
+    players.sort((a, b) => a.availability_minutes - b.availability_minutes);
 
     const stages: Stage[] = [];
-    const stage_durations = Array.from(allowed_durations).sort((a, b) => b - a)
-        .map((s, i, a) => i + 1 == a.length ? s : s - a[i+1]);
+    const stage_durations = Array.from(allowed_durations).sort()
+        .map((duration, i, durations) => i == 0 ? duration : duration - durations[i-1]);
     let start_minutes = 0;
     for (let i = 0; i < stage_durations.length; ++i) {
         const duration = stage_durations[i];
         const end_minutes = start_minutes + duration;
-        let remaining_courts =  courts.findIndex(c=>c.availability_minutes < end_minutes);
-        if (remaining_courts == -1) {
-            remaining_courts = n_courts;
+        let remaining_courts =
+            n_courts - courts.findIndex(c=>c.availability_minutes >= end_minutes);
+        if (remaining_courts > n_courts) {
+            remaining_courts = 0;
         }
-        let remaining_players = players.findIndex(p=>p.availability_minutes < end_minutes);
-        if (remaining_players == -1) {
-            remaining_players = n_players;
+        let remaining_players =
+            n_players - players.findIndex(p=>p.availability_minutes >= end_minutes);
+        if (remaining_players > n_players) {
+            remaining_players = 0;
         }
         const n_rotations = Math.floor(duration/match_duration_minutes); 
         const stage: Stage = {
-            id: i+1,
+            id: i,
             start_minutes,
             end_minutes,
             n_rotations,
@@ -88,12 +90,12 @@ function SessionFromInput(): Session {
             n_resting_players_per_rotation: 0
         };
         for (; remaining_courts > 0; --remaining_courts) {
-            if (remaining_courts*4 > remaining_players) {
+            if (remaining_courts*NUM_PLAYERS_DOUBLE > remaining_players) {
                 stage.n_single_courts += 1;
-                remaining_players -= 2;
+                remaining_players -= NUM_PLAYERS_SINGLE;
             } else {
                 stage.n_double_courts += 1;
-                remaining_players -= 4;
+                remaining_players -= NUM_PLAYERS_DOUBLE;
             }
         }
         stage.n_resting_players_per_rotation = remaining_players;
@@ -108,12 +110,12 @@ function FixturesFromStage(stage: Stage, players: Player[], seed: number): Statu
     const n_single_courts = stage.n_single_courts
     const n_double_courts = stage.n_double_courts;
     const resting_probability = stage.n_resting_players_per_rotation/stage.n_players;
-    const single_probability = n_single_courts*2/stage.n_players;
-    const double_probability = n_double_courts*4/stage.n_players;
+    const single_probability = n_single_courts*NUM_PLAYERS_SINGLE/stage.n_players;
+    const double_probability = n_double_courts*NUM_PLAYERS_DOUBLE/stage.n_players;
     const pairwise_single_probability = 
-        Math.pow(single_probability, 2)/(Math.abs(n_single_courts*2-1));
+        Math.pow(single_probability, 2)/(Math.abs(n_single_courts*NUM_PLAYERS_SINGLE-1));
     const pairwise_double_probability =
-        Math.pow(double_probability, 2)/(Math.abs(n_double_courts*4-1));
+        Math.pow(double_probability, 2)/(Math.abs(n_double_courts*NUM_PLAYERS_DOUBLE-1));
     
     const resting_max = Math.ceil(resting_probability*stage.n_rotations);
     const single_max = Math.ceil(single_probability*stage.n_rotations);
@@ -148,14 +150,14 @@ function FixturesFromStage(stage: Stage, players: Player[], seed: number): Statu
     const double_cooldown_gauge = new Map<string, number>();
     const pairwise_single_cooldown_gauge = new Map<PairwiseKey, number>();
     const pairwise_double_cooldown_gauge = new Map<PairwiseKey, number>();
-    for (let i = 0; i < stage.n_players; ++i) {
+    for (let i = players.length - 1; i >= players.length - stage.n_players; --i) {
         resting_max_gauge.set(players[i].name, 0);
         single_max_gauge.set(players[i].name, 0);
         double_max_gauge.set(players[i].name, 0);
         resting_cooldown_gauge.set(players[i].name, 0);
         single_cooldown_gauge.set(players[i].name, 0);
         double_cooldown_gauge.set(players[i].name, 0);
-        for (let j = i+1; j < stage.n_players; ++j) {
+        for (let j = i-1; j >= players.length - stage.n_players; --j) {
             pairwise_single_max_gauge.set(
                 PairwiseKeyFromNames(players[i].name, players[j].name), 0);
             pairwise_double_max_gauge.set(
@@ -189,26 +191,28 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
         }
         for (let i = 0; i < MAX_SIMULATIONS_PER_NODE; ++i) {
             // Generate rotation proposal.
-            const sorted_players = [...players].sort((a, b) => 0.5 - rng());
+            const active_players = players
+                .slice(players.length - stage.n_players)
+                .sort(() => 0.5 - rng());
             const resting_players = Array(stage.n_resting_players_per_rotation)
                 .fill(undefined)
-                .map(_ => PopRandomElement(sorted_players, rng).name);
+                .map(_ => PopRandomElement(active_players, rng).name);
             const singles: MatchSingle[] = Array(stage.n_single_courts)
                 .fill(undefined)
                 .map(_ => {
                     return {
-                        player_a: PopRandomElement(sorted_players, rng).name,
-                        player_b: PopRandomElement(sorted_players, rng).name
+                        player_a: PopRandomElement(active_players, rng).name,
+                        player_b: PopRandomElement(active_players, rng).name
                     }
                 });
             const doubles: MatchDouble[] = Array(stage.n_double_courts)
                 .fill(undefined)
                 .map(_ => {
                     return {
-                        player_a1: PopRandomElement(sorted_players, rng).name,
-                        player_a2: PopRandomElement(sorted_players, rng).name,
-                        player_b1: PopRandomElement(sorted_players, rng).name,
-                        player_b2: PopRandomElement(sorted_players, rng).name,
+                        player_a1: PopRandomElement(active_players, rng).name,
+                        player_a2: PopRandomElement(active_players, rng).name,
+                        player_b1: PopRandomElement(active_players, rng).name,
+                        player_b2: PopRandomElement(active_players, rng).name,
                     }
                 });
             // Update & validate gauges.
@@ -279,6 +283,7 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
                 update_pair(m.player_b1, m.player_b2);
             });
             const rotation: Rotation = { singles, doubles, resting_players };
+            console.dir(gauges, {depth: null});
              if (!ValidateGauges(updated_gauges, constraints)) {
                 continue;
              }
@@ -297,11 +302,11 @@ var session: Session|undefined = undefined;
 function main() {
     session = session || SessionFromInput();
     document.getElementById("regenerate")?.classList.remove("d-none");
-    const roaster: Roster = {
+    const roster: Roster = {
         fixtures: Array(session.stages.length).fill(undefined)
             .map((_, i) => FixturesFromStage(session!.stages[i], session!.players, Date.now()))
     };
-    Fail(roaster);
+    Fail(roster);
 }
 
 window.onload = main;

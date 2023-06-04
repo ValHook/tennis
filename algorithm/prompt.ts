@@ -16,10 +16,10 @@ export function PromptInt(
             Fail("Not a valid number");
         }
         if (result < min || result > max) {
-            Fail("Number must be >= " + min + " and <= " + max);
+            Fail("Number " + result + " must be >= " + min + " and <= " + max);
         }
         if (set && !set.has(result)) {
-            Fail("Number must be one of " + Array.from(set).join(", "));
+            Fail("Number " + result + " must be one of " + Array.from(set).join(", "));
         }
         return result
 }
