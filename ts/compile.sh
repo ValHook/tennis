@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+cd "$(dirname "$0")"
+rm -r generated/
 npx tsc
 
 if [ "$(uname)" == "Darwin" ]; then
