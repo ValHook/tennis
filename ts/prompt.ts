@@ -24,9 +24,15 @@ export function PromptInt(
         return result
 }
 
-export function Fail<T>(input: T) {
-    console.error(input);
-    const error = typeof input === "string" ? input : JSON.stringify(input, undefined, 2);
-    document.getElementById("out")!.innerText = error;
+export function Fail<T>(output: T) {
+    console.error(output);
+    Output(output);
     throw new Error("Stopped execution.");
+}
+
+export function Output<T>(output: T) {
+    const out = typeof output === "string" ? output : JSON.stringify(output, undefined, 2);
+    document.getElementById("output")!.innerText = out;
+    document.getElementById("outputBox")!.classList.remove("d-none");
+    document.getElementById("outputBox")!.scrollIntoView({ behavior: "smooth", inline: "nearest" });
 }

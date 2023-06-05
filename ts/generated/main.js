@@ -1,5 +1,5 @@
 import { PairwiseKeyFromNames, CopyGauges, ValidateGauges, ClockDownCooldowns } from "./types.js";
-import { Fail, Prompt, PromptInt } from "./prompt.js";
+import { Prompt, PromptInt, Output, Fail } from "./prompt.js";
 import { MAX_SIMULATIONS_PER_NODE, NUM_PLAYERS_DOUBLE, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { StatusOr } from "./status.js";
 import { Mulberry32, PopRandomElement } from "./rng.js";
@@ -251,13 +251,49 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
 }
 var session = undefined;
 function main() {
+    document.getElementById("inputCourtCount")?.addEventListener("change", (event) => {
+        changeCourtCount(Number(event?.target?.value));
+    });
+    document.getElementById("inputPlayerCount")?.addEventListener("change", (event) => {
+        changePlayerCount(Number(event?.target?.value));
+    });
+    changeCourtCount(Number(document.getElementById("inputCourtCount")?.value));
+    changePlayerCount(Number(document.getElementById("inputPlayerCount")?.value));
+    document.getElementById("generate")?.addEventListener("click", (event) => {
+        tennisGen();
+    });
+    document.getElementById("regenerate")?.addEventListener("click", (event) => {
+        tennisGen();
+    });
+}
+function changeCourtCount(count) {
+    const max_courts = 4;
+    for (let i = 0; i < max_courts; ++i) {
+        if (i < count)
+            document.getElementById("court" + i)?.classList.remove("d-none");
+        else
+            document.getElementById("court" + i)?.classList.add("d-none");
+    }
+}
+function changePlayerCount(count) {
+    const max_players = 12;
+    for (let i = 0; i < max_players; ++i) {
+        if (i < count)
+            document.getElementById("player" + i)?.classList.remove("d-none");
+        else
+            document.getElementById("player" + i)?.classList.add("d-none");
+    }
+}
+function tennisGen() {
     session = session || SessionFromInput();
     document.getElementById("regenerate")?.classList.remove("d-none");
     const roster = {
         fixtures: Array(session.stages.length).fill(undefined)
             .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))
     };
-    Fail(roster);
+    Output(roster);
 }
-window.onload = main;
+window.addEventListener("DOMContentLoaded", (event) => {
+    main();
+});
 //# sourceMappingURL=main.js.map

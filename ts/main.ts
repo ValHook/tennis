@@ -3,7 +3,7 @@ import {
     PairwiseKey, PairwiseKeyFromNames, CopyGauges, Rotation, ValidateGauges,
     MatchSingle, MatchDouble, ClockDownCooldowns, Roster
 } from "./types";
-import { Fail, Prompt, PromptInt } from "./prompt";
+import { Prompt, PromptInt, Output, Fail } from "./prompt";
 import { MAX_SIMULATIONS_PER_NODE, NUM_PLAYERS_DOUBLE, NUM_PLAYERS_SINGLE } from "./constants";
 import { StatusOr } from "./status";
 import { Rng, Mulberry32, PopRandomElement } from "./rng";
@@ -299,14 +299,55 @@ function RotationsFromStageRecursive(stage: Stage, players: Player[], rotation_c
 }
 
 var session: Session|undefined = undefined;
+
 function main() {
+    (<HTMLInputElement>document.getElementById("inputCourtCount"))?.addEventListener("change", (event) => {
+      changeCourtCount(Number((event?.target as HTMLInputElement)?.value));
+    });
+    (<HTMLInputElement>document.getElementById("inputPlayerCount"))?.addEventListener("change", (event) => {
+      changePlayerCount(Number((event?.target as HTMLInputElement)?.value));
+    });
+    changeCourtCount(Number((<HTMLInputElement>document.getElementById("inputCourtCount"))?.value));
+    changePlayerCount(Number((<HTMLInputElement>document.getElementById("inputPlayerCount"))?.value));
+
+    (<HTMLInputElement>document.getElementById("generate"))?.addEventListener("click", (event) => {
+        tennisGen();
+    });
+    (<HTMLInputElement>document.getElementById("regenerate"))?.addEventListener("click", (event) => {
+        tennisGen();
+    });
+}
+
+function changeCourtCount(count: number) {
+    const max_courts = 4;
+    for (let i = 0; i < max_courts; ++i) {
+        if (i < count)
+            document.getElementById("court"+i)?.classList.remove("d-none");
+        else
+            document.getElementById("court"+i)?.classList.add("d-none");
+    }
+}
+
+function changePlayerCount(count: number) {
+    const max_players = 12;
+    for (let i = 0; i < max_players; ++i) {
+        if (i < count)
+            document.getElementById("player"+i)?.classList.remove("d-none");
+        else
+            document.getElementById("player"+i)?.classList.add("d-none");
+    }
+}
+
+function tennisGen() {
     session = session || SessionFromInput();
     document.getElementById("regenerate")?.classList.remove("d-none");
     const roster: Roster = {
         fixtures: Array(session.stages.length).fill(undefined)
             .map((_, i) => FixturesFromStage(session!.stages[i], session!.players, Date.now()))
     };
-    Fail(roster);
+    Output(roster);
 }
 
-window.onload = main;
+window.addEventListener("DOMContentLoaded", (event) => {
+    main();
+});

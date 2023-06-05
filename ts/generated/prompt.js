@@ -18,10 +18,15 @@ export function PromptInt(ask, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_S
     }
     return result;
 }
-export function Fail(input) {
-    console.error(input);
-    const error = typeof input === "string" ? input : JSON.stringify(input, undefined, 2);
-    document.getElementById("out").innerText = error;
+export function Fail(output) {
+    console.error(output);
+    Output(output);
     throw new Error("Stopped execution.");
+}
+export function Output(output) {
+    const out = typeof output === "string" ? output : JSON.stringify(output, undefined, 2);
+    document.getElementById("output").innerText = out;
+    document.getElementById("outputBox").classList.remove("d-none");
+    document.getElementById("outputBox").scrollIntoView({ behavior: "smooth", inline: "nearest" });
 }
 //# sourceMappingURL=prompt.js.map
