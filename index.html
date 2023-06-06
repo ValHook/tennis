@@ -35,8 +35,13 @@
           <div class="row">
             <pre id="output"></pre>
           </div>
-          <div class="row">
-            <button class="btn btn-primary d-none" id="regenerate">
+          <div class="col d-flex gap-2">
+            <button class="btn btn-primary d-inline-flex d-none" id="clipboard"
+               data-bs-container="body" data-bs-toggle="popover" tabindex="0" 
+               data-bs-placement="top" data-bs-content="Copied to clipboard">
+                Copy
+            </button>
+            <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
                 Regenerate with same parameters
             </button>
           </div>
@@ -45,7 +50,7 @@
         <div class="b-example-divider"></div>
       </div>
 
-      <div class="container px-4 py-5">
+      <div class="container px-4 pb-3">
         <div class="row g-4 g-lg-5 py-5">
 
           <div class="col col-lg-8 d-flex flex-column gap-2">
@@ -55,7 +60,7 @@
 
               <div class="form-floating mb-3">
                 <input type="text" class="form-control" id="inputMatchDuration" placeholder="15">
-                <label for="inputMatchDuration">Average match duration in minutes (e.g. 10)</label>
+                <label for="inputMatchDuration">Average match duration in minutes (e.g. 15)</label>
                 <div class="invalid-feedback">Please provide a number of minutes.</div>
               </div>
 
