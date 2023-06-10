@@ -1,6 +1,6 @@
-import { PairwiseKeyFromNames, CopyGauges, ValidateGauges, ClockDownCooldowns } from "./types.js";
+import { PairwiseKeyFromNames, CopyGauges, ValidateGauges, ClockDownCooldowns, } from "./types.js";
 import { Prompt, PromptInt, Output, Fail } from "./prompt.js";
-import { MAX_SIMULATIONS_PER_NODE, NUM_PLAYERS_DOUBLE, NUM_PLAYERS_SINGLE } from "./constants.js";
+import { MAX_SIMULATIONS_PER_NODE, NUM_PLAYERS_DOUBLE, NUM_PLAYERS_SINGLE, } from "./constants.js";
 import { StatusOr } from "./status.js";
 import { Mulberry32, PopRandomElement } from "./rng.js";
 function SessionFromInput() {
@@ -10,13 +10,13 @@ function SessionFromInput() {
     for (let i = 0; i < n_courts; ++i) {
         courts.push({
             id: i,
-            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", match_duration_minutes)
+            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", match_duration_minutes),
         });
     }
     courts.sort((a, b) => a.availability_minutes - b.availability_minutes);
-    courts.forEach((c, i) => c.id = i);
+    courts.forEach((c, i) => (c.id = i));
     const players = [];
-    const allowed_durations = new Set(courts.map(c => c.availability_minutes));
+    const allowed_durations = new Set(courts.map((c) => c.availability_minutes));
     const court_utilizations = Array(n_courts).fill(0);
     const n_players = PromptInt("inputPlayerCount", "How many players?", n_courts * NUM_PLAYERS_SINGLE);
     const min_minutes = courts[0].availability_minutes;
@@ -25,7 +25,7 @@ function SessionFromInput() {
     for (let i = 0; i < n_players; ++i) {
         const player = {
             name: Prompt("inputPlayerName" + i, "Player #" + (i + 1) + " name?"),
-            availability_minutes: PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, allowed_durations)
+            availability_minutes: PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, allowed_durations),
         };
         if (player_names.has(player.name)) {
             Fail("inputPlayerMinutes" + i, "All players must have distinct names");
@@ -42,8 +42,7 @@ function SessionFromInput() {
             break;
         }
         const remaining_players = n_players - i - 1;
-        const court_underutilization = court_utilizations
-            .reduce((total, utilization) => total + (utilization - NUM_PLAYERS_SINGLE), 0);
+        const court_underutilization = court_utilizations.reduce((total, utilization) => total + (utilization - NUM_PLAYERS_SINGLE), 0);
         if (remaining_players < court_underutilization) {
             Fail("inputPlayerCount", "Not enough remaining players to correctly utilize all the courts");
         }
@@ -51,17 +50,19 @@ function SessionFromInput() {
     }
     players.sort((a, b) => a.availability_minutes - b.availability_minutes);
     const stages = [];
-    const stage_durations = Array.from(allowed_durations).sort()
+    const stage_durations = Array.from(allowed_durations)
+        .sort()
         .map((duration, i, durations) => i == 0 ? duration : duration - durations[i - 1]);
     let start_minutes = 0;
     for (let i = 0; i < stage_durations.length; ++i) {
         const duration = stage_durations[i];
         const end_minutes = start_minutes + duration;
-        let remaining_courts = n_courts - courts.findIndex(c => c.availability_minutes >= end_minutes);
+        let remaining_courts = n_courts - courts.findIndex((c) => c.availability_minutes >= end_minutes);
         if (remaining_courts > n_courts) {
             remaining_courts = 0;
         }
-        let remaining_players = n_players - players.findIndex(p => p.availability_minutes >= end_minutes);
+        let remaining_players = n_players -
+            players.findIndex((p) => p.availability_minutes >= end_minutes);
         if (remaining_players > n_players) {
             remaining_players = 0;
         }
@@ -76,7 +77,7 @@ function SessionFromInput() {
             n_courts: remaining_courts,
             n_single_courts: 0,
             n_double_courts: 0,
-            n_resting_players_per_rotation: 0
+            n_resting_players_per_rotation: 0,
         };
         for (; remaining_courts > 0; --remaining_courts) {
             if (remaining_courts * NUM_PLAYERS_DOUBLE > remaining_players) {
@@ -98,10 +99,12 @@ function FixturesFromStage(stage, players, seed) {
     const n_single_courts = stage.n_single_courts;
     const n_double_courts = stage.n_double_courts;
     const resting_probability = stage.n_resting_players_per_rotation / stage.n_players;
-    const single_probability = n_single_courts * NUM_PLAYERS_SINGLE / stage.n_players;
-    const double_probability = n_double_courts * NUM_PLAYERS_DOUBLE / stage.n_players;
-    const pairwise_single_probability = Math.pow(single_probability, 2) / (Math.abs(n_single_courts * NUM_PLAYERS_SINGLE - 1));
-    const pairwise_double_probability = Math.pow(double_probability, 2) / (Math.abs(n_double_courts * NUM_PLAYERS_DOUBLE - 1));
+    const single_probability = (n_single_courts * NUM_PLAYERS_SINGLE) / stage.n_players;
+    const double_probability = (n_double_courts * NUM_PLAYERS_DOUBLE) / stage.n_players;
+    const pairwise_single_probability = Math.pow(single_probability, 2) /
+        Math.abs(n_single_courts * NUM_PLAYERS_SINGLE - 1);
+    const pairwise_double_probability = Math.pow(double_probability, 2) /
+        Math.abs(n_double_courts * NUM_PLAYERS_DOUBLE - 1);
     const resting_max = Math.ceil(resting_probability * stage.n_rotations);
     const single_max = Math.ceil(single_probability * stage.n_rotations);
     const double_max = Math.ceil(double_probability * stage.n_rotations);
@@ -160,8 +163,9 @@ function FixturesFromStage(stage, players, seed) {
         pairwise_single_cooldown: pairwise_single_cooldown_gauge,
         pairwise_double_cooldown: pairwise_double_cooldown_gauge,
     };
-    return RotationsFromStageRecursive(stage, players, 0, constraints, gauges, Mulberry32(seed))
-        .transform((rotations) => { return { rotations }; });
+    return RotationsFromStageRecursive(stage, players, 0, constraints, gauges, Mulberry32(seed)).transform((rotations) => {
+        return { rotations };
+    });
 }
 function RotationsFromStageRecursive(stage, players, rotation_counter, constraints, gauges, rng) {
     if (rotation_counter >= stage.n_rotations) {
@@ -174,18 +178,18 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
             .sort(() => 0.5 - rng());
         const resting_players = Array(stage.n_resting_players_per_rotation)
             .fill(undefined)
-            .map(_ => PopRandomElement(active_players, rng).name);
+            .map((_) => PopRandomElement(active_players, rng).name);
         const singles = Array(stage.n_single_courts)
             .fill(undefined)
-            .map(_ => {
+            .map((_) => {
             return {
                 player_a: PopRandomElement(active_players, rng).name,
-                player_b: PopRandomElement(active_players, rng).name
+                player_b: PopRandomElement(active_players, rng).name,
             };
         });
         const doubles = Array(stage.n_double_courts)
             .fill(undefined)
-            .map(_ => {
+            .map((_) => {
             return {
                 player_a1: PopRandomElement(active_players, rng).name,
                 player_a2: PopRandomElement(active_players, rng).name,
@@ -196,36 +200,42 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
         // Update & validate gauges.
         const updated_gauges = CopyGauges(gauges);
         ClockDownCooldowns(updated_gauges, constraints);
-        resting_players.forEach(p => {
+        resting_players.forEach((p) => {
             updated_gauges.resting_max.set(p, updated_gauges.resting_max.get(p) + 1);
-            updated_gauges.resting_cooldown.set(p, Math.max(constraints.resting_cooldown, updated_gauges.resting_cooldown.get(p) + 1 + constraints.resting_cooldown));
+            updated_gauges.resting_cooldown.set(p, Math.max(constraints.resting_cooldown, updated_gauges.resting_cooldown.get(p) +
+                1 +
+                constraints.resting_cooldown));
         });
-        singles.forEach(m => {
+        singles.forEach((m) => {
             function update(p) {
                 updated_gauges.single_max.set(p, updated_gauges.single_max.get(p) + 1);
-                updated_gauges.single_cooldown.set(p, Math.max(constraints.single_cooldown, updated_gauges.single_cooldown.get(p) + 1 + constraints.single_cooldown));
+                updated_gauges.single_cooldown.set(p, Math.max(constraints.single_cooldown, updated_gauges.single_cooldown.get(p) +
+                    1 +
+                    constraints.single_cooldown));
             }
             function update_pair(a, b) {
                 const key = PairwiseKeyFromNames(a, b);
-                updated_gauges.pairwise_single_max
-                    .set(key, updated_gauges.pairwise_single_max.get(key) + 1);
-                updated_gauges.pairwise_single_cooldown.set(key, Math.max(constraints.pairwise_single_cooldown, updated_gauges.pairwise_single_cooldown.get(key) + 1 +
+                updated_gauges.pairwise_single_max.set(key, updated_gauges.pairwise_single_max.get(key) + 1);
+                updated_gauges.pairwise_single_cooldown.set(key, Math.max(constraints.pairwise_single_cooldown, updated_gauges.pairwise_single_cooldown.get(key) +
+                    1 +
                     constraints.pairwise_single_cooldown));
             }
             update(m.player_a);
             update(m.player_b);
             update_pair(m.player_a, m.player_b);
         });
-        doubles.forEach(m => {
+        doubles.forEach((m) => {
             function update(p) {
                 updated_gauges.double_max.set(p, updated_gauges.double_max.get(p) + 1);
-                updated_gauges.double_cooldown.set(p, Math.max(constraints.double_cooldown, updated_gauges.double_cooldown.get(p) + 1 + constraints.double_cooldown));
+                updated_gauges.double_cooldown.set(p, Math.max(constraints.double_cooldown, updated_gauges.double_cooldown.get(p) +
+                    1 +
+                    constraints.double_cooldown));
             }
             function update_pair(a, b) {
                 const key = PairwiseKeyFromNames(a, b);
-                updated_gauges.pairwise_double_max
-                    .set(key, updated_gauges.pairwise_double_max.get(key) + 1);
-                updated_gauges.pairwise_single_cooldown.set(key, Math.max(constraints.pairwise_single_cooldown, updated_gauges.pairwise_single_cooldown.get(key) + 1 +
+                updated_gauges.pairwise_double_max.set(key, updated_gauges.pairwise_double_max.get(key) + 1);
+                updated_gauges.pairwise_single_cooldown.set(key, Math.max(constraints.pairwise_single_cooldown, updated_gauges.pairwise_single_cooldown.get(key) +
+                    1 +
                     constraints.pairwise_single_cooldown));
             }
             update(m.player_a1);
@@ -251,27 +261,38 @@ function RotationsFromStageRecursive(stage, players, rotation_counter, constrain
 }
 var session = undefined;
 function main() {
-    document.querySelector("#inputCourtCount")?.addEventListener("change", (event) => {
+    document
+        .querySelector("#inputCourtCount")
+        ?.addEventListener("change", (event) => {
         changeCourtCount(parseInt(event?.target?.value));
     });
-    document.querySelector("#inputPlayerCount")?.addEventListener("change", (event) => {
+    document
+        .querySelector("#inputPlayerCount")
+        ?.addEventListener("change", (event) => {
         changePlayerCount(parseInt(event?.target?.value));
     });
     changeCourtCount(parseInt(document.querySelector("#inputCourtCount").value));
     changePlayerCount(parseInt(document.querySelector("#inputPlayerCount").value));
-    document.querySelector("#generate")?.addEventListener("click", (event) => {
+    document
+        .querySelector("#generate")
+        ?.addEventListener("click", (event) => {
         tennisGen(SessionFromInput());
     });
-    document.querySelector("#regenerate")?.addEventListener("click", (event) => {
+    document
+        .querySelector("#regenerate")
+        ?.addEventListener("click", (event) => {
         tennisGen(session || SessionFromInput());
     });
-    document.querySelector("#clipboard")?.addEventListener("click", (event) => {
+    document
+        .querySelector("#clipboard")
+        ?.addEventListener("click", (event) => {
         navigator.clipboard.writeText(document.querySelector("#output").innerText);
     });
 }
 function changeCourtCount(count) {
     const max_courts = 4;
-    document.querySelector("#courtCount").innerText = String(count);
+    document.querySelector("#courtCount").innerText =
+        String(count);
     for (let i = 0; i < max_courts; ++i) {
         if (i < count)
             document.querySelector("#court" + i)?.classList.remove("d-none");
@@ -281,7 +302,8 @@ function changeCourtCount(count) {
 }
 function changePlayerCount(count) {
     const max_players = 12;
-    document.querySelector("#playerCount").innerText = String(count);
+    document.querySelector("#playerCount").innerText =
+        String(count);
     for (let i = 0; i < max_players; ++i) {
         if (i < count)
             document.querySelector("#player" + i)?.classList.remove("d-none");
@@ -291,8 +313,9 @@ function changePlayerCount(count) {
 }
 function tennisGen(session) {
     const roster = {
-        fixtures: Array(session.stages.length).fill(undefined)
-            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now()))
+        fixtures: Array(session.stages.length)
+            .fill(undefined)
+            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now())),
     };
     document.getElementById("regenerate")?.classList.remove("d-none");
     document.getElementById("clipboard")?.classList.remove("d-none");

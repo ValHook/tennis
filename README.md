@@ -13,9 +13,9 @@ You can then visit the locally served website at [http://localhost:8000](http://
 
 ## Writing changes
 
-The only dependency you need is Typescript.
+The only dependencies you need are Typescript and a linter.
 ```
-npm install -g typescript
+npm install -g typescript prettier
 ```
 
 Then write your changes in `ts/` and compile them by executing:
@@ -23,6 +23,8 @@ Then write your changes in `ts/` and compile them by executing:
 ./ts/compile.sh
 ```
 
-It doesn't matter which directory you execute the shell script from. However, note that this script for Mac and Linux only; Windows users may want to use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
-
+It doesn't matter which directory you execute the shell script from.  
+However, note that this script for Mac and Linux only.  
+Windows users may want to use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).  
+  
 This regenerates the `ts/generated` directory which the `index.html` page is configured to load.

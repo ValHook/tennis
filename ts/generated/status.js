@@ -16,7 +16,6 @@ export class Status {
     }
     error_;
 }
-;
 export class StatusOr {
     static Ok(object) {
         return new StatusOr(Status.Ok(), object);
@@ -51,5 +50,4 @@ export class StatusOr {
     status_;
     object_;
 }
-;
 //# sourceMappingURL=status.js.map
