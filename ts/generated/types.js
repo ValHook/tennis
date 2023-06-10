@@ -24,7 +24,7 @@ export function ClockDownCooldowns(gauges, constraints) {
         gauges.pairwise_single_cooldown,
         gauges.pairwise_double_cooldown,
     ];
-    cooldowns.forEach(cooldown => {
+    cooldowns.forEach((cooldown) => {
         cooldown.forEach((v, k) => {
             cooldown.set(k, v - 1);
         });
@@ -59,13 +59,12 @@ export function ValidateGauges(gauges, constraints) {
         constraints.pairwise_single_cooldown,
         constraints.pairwise_double_cooldown,
     ];
-    const max_and_cooldowns_ok = all_gauges
-        .every((gauge, i) => [...gauge.values()].every(value => value <= all_constraints[i]));
+    const max_and_cooldowns_ok = all_gauges.every((gauge, i) => [...gauge.values()].every((value) => value <= all_constraints[i]));
     const diversity_ok = pairwise_gauges
-        .map(gauge => [...gauge.values()])
-        .every(values => {
-        return Math.max(...values) <=
-            Math.min(...values) + MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA;
+        .map((gauge) => [...gauge.values()])
+        .every((values) => {
+        return (Math.max(...values) <=
+            Math.min(...values) + MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA);
     });
     return max_and_cooldowns_ok && diversity_ok;
 }
