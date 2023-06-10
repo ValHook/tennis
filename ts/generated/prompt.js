@@ -1,6 +1,8 @@
 export function Prompt(id, ask) {
     const input = document.querySelector("#" + id);
-    const result = input ? input.value : (window.prompt(ask) || "").replace(/\s/g, "");
+    const result = input
+        ? input.value
+        : (window.prompt(ask) || "").replace(/\s/g, "");
     if (!result.length) {
         Fail(id, "Not a valid string");
     }
@@ -8,7 +10,9 @@ export function Prompt(id, ask) {
 }
 export function PromptInt(id, ask, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER, set = undefined) {
     const input = document.querySelector("#" + id);
-    const result = input ? parseInt(input.value) : parseInt(window.prompt(ask) || "");
+    const result = input
+        ? parseInt(input.value)
+        : parseInt(window.prompt(ask) || "");
     if (isNaN(result)) {
         Fail(id, "Not a valid number");
     }
@@ -39,6 +43,8 @@ export function Output(output) {
     const out = typeof output === "string" ? output : JSON.stringify(output, undefined, 2);
     document.querySelector("#output").innerText = out;
     document.querySelector("#outputBox").classList.remove("d-none");
-    document.querySelector("#outputBox").scrollIntoView({ behavior: "smooth", inline: "nearest" });
+    document
+        .querySelector("#outputBox")
+        .scrollIntoView({ behavior: "smooth", inline: "nearest" });
 }
 //# sourceMappingURL=prompt.js.map
