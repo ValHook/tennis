@@ -38,7 +38,7 @@
           <div class="col d-flex gap-2">
             <button class="btn btn-primary d-inline-flex d-none" id="clipboard"
                data-bs-container="body" data-bs-toggle="popover" tabindex="0" 
-               data-bs-placement="top" data-bs-content="Copied to clipboard">
+               data-bs-placement="top" data-bs-content="✅ Copied to clipboard">
                 Copy
             </button>
             <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
@@ -379,4 +379,22 @@
         </footer>
       </div>
     </body>
+
+    <script>
+      // Enable Bootstrap popovers
+      const popoverTriggerList = document.querySelectorAll(
+        '[data-bs-toggle="popover"]'
+      );
+      popoverTriggerList.forEach((popoverTriggerEl) => {
+        const popover = new bootstrap.Popover(popoverTriggerEl, {
+            trigger: "manual",
+          })
+        popoverTriggerEl.onclick = function() {
+          popover.show();
+        }
+        popoverTriggerEl.onblur = function() {
+          popover.hide();
+        }
+      });
+    </script>
 </html>
