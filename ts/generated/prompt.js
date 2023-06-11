@@ -1,4 +1,5 @@
 export function Prompt(id, ask) {
+    Reset(id);
     const input = document.querySelector("#" + id);
     const result = input
         ? input.value
@@ -9,6 +10,7 @@ export function Prompt(id, ask) {
     return result;
 }
 export function PromptInt(id, ask, min = Number.MIN_SAFE_INTEGER, max = Number.MAX_SAFE_INTEGER, set = undefined) {
+    Reset(id);
     const input = document.querySelector("#" + id);
     const result = input
         ? parseInt(input.value)
@@ -23,6 +25,12 @@ export function PromptInt(id, ask, min = Number.MIN_SAFE_INTEGER, max = Number.M
         Fail(id, "Number " + result + " must be one of " + Array.from(set).join(", "));
     }
     return result;
+}
+export function Reset(id) {
+    const input = document.querySelector("#" + id);
+    if (input) {
+        input.classList.remove("is-invalid");
+    }
 }
 export function Fail(id, output) {
     console.error(output);

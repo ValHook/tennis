@@ -1,4 +1,5 @@
 export function Prompt(id: string, ask: string): string {
+  Reset(id);
   const input = document.querySelector<HTMLInputElement>("#" + id);
   const result = input
     ? input.value
@@ -16,6 +17,7 @@ export function PromptInt(
   max: number = Number.MAX_SAFE_INTEGER,
   set: Set<number> | undefined = undefined
 ): number {
+  Reset(id);
   const input = document.querySelector<HTMLInputElement>("#" + id);
   const result = input
     ? parseInt(input.value)
@@ -33,6 +35,13 @@ export function PromptInt(
     );
   }
   return result;
+}
+
+export function Reset<T>(id: string) {
+  const input = document.querySelector<HTMLInputElement>("#" + id);
+  if (input) {
+    input.classList.remove("is-invalid");
+  }
 }
 
 export function Fail<T>(id: string, output: T) {

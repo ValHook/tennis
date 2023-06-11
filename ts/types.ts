@@ -1,6 +1,10 @@
 import { MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA } from "./constants";
 import { StatusOr } from "./status";
 
+export interface Configuration {
+  match_duration_minutes: number;
+}
+
 export interface Court {
   id: number;
   availability_minutes: number;
@@ -25,9 +29,9 @@ export interface Stage {
 }
 
 export interface Session {
+  configuration: Configuration;
   courts: Court[];
   players: Player[];
-  stages: Stage[];
 }
 
 export interface MatchSingle {
