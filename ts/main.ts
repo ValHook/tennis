@@ -462,6 +462,21 @@ function main() {
         document.querySelector<HTMLInputElement>("#output")!.innerText
       );
     });
+
+  document
+    .querySelector<HTMLInputElement>(".sample-roster")
+    ?.addEventListener("click", (event) => {
+      const session = {
+        configuration: { match_duration_minutes: 15 },
+        players: [
+          { name: "Valentin", availability_minutes: 60 },
+          { name: "Paul", availability_minutes: 60 },
+        ],
+        courts: [{ id: 0, availability_minutes: 60 }],
+      };
+      tennisGen(session);
+      event.preventDefault();
+    });
 }
 
 function changeCourtCount(count: number) {
