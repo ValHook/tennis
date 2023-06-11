@@ -1,4 +1,5 @@
 import {
+  Configuration,
   Court,
   Player,
   Stage,
@@ -27,12 +28,16 @@ import { Rng, Mulberry32, PopRandomElement } from "./rng";
 
 function SessionFromInput(): Session {
   const courts: Court[] = [];
-  const match_duration_minutes = PromptInt(
-    "inputMatchDuration",
-    "Average match duration in minutes?",
-    1,
-    120
-  );
+
+  const configuration = {
+    match_duration_minutes: PromptInt(
+      "inputMatchDuration",
+      "Average match duration in minutes?",
+      1,
+      120
+    ),
+  };
+
   const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
   for (let i = 0; i < n_courts; ++i) {
     courts.push({
@@ -40,7 +45,7 @@ function SessionFromInput(): Session {
       availability_minutes: PromptInt(
         "inputCourtDuration" + i,
         "Court #" + (i + 1) + " availability in minutes?",
-        match_duration_minutes
+        configuration.match_duration_minutes
       ),
     });
   }
@@ -98,9 +103,17 @@ function SessionFromInput(): Session {
   }
   players.sort((a, b) => a.availability_minutes - b.availability_minutes);
 
+  return { configuration, courts, players };
+}
+
+function StagesFromSession(session: Session) {
+  const n_courts = session.courts.length;
+  const n_players = session.players.length;
+
   const stages: Stage[] = [];
-  const stage_durations = Array.from(allowed_durations)
-    .sort()
+  const stage_durations = Array.from(session.courts)
+    .map((court) => court.availability_minutes)
+    .sort((a, b) => a - b)
     .map((duration, i, durations) =>
       i == 0 ? duration : duration - durations[i - 1]
     );
@@ -109,17 +122,20 @@ function SessionFromInput(): Session {
     const duration = stage_durations[i];
     const end_minutes = start_minutes + duration;
     let remaining_courts =
-      n_courts - courts.findIndex((c) => c.availability_minutes >= end_minutes);
+      n_courts -
+      session.courts.findIndex((c) => c.availability_minutes >= end_minutes);
     if (remaining_courts > n_courts) {
       remaining_courts = 0;
     }
     let remaining_players =
       n_players -
-      players.findIndex((p) => p.availability_minutes >= end_minutes);
+      session.players.findIndex((p) => p.availability_minutes >= end_minutes);
     if (remaining_players > n_players) {
       remaining_players = 0;
     }
-    const n_rotations = Math.floor(duration / match_duration_minutes);
+    const n_rotations = Math.floor(
+      duration / session.configuration.match_duration_minutes
+    );
     const stage: Stage = {
       id: i,
       start_minutes,
@@ -146,7 +162,7 @@ function SessionFromInput(): Session {
     start_minutes += duration;
   }
 
-  return { courts, players, stages };
+  return stages;
 }
 
 function FixturesFromStage(
@@ -471,11 +487,12 @@ function changePlayerCount(count: number) {
 }
 
 function tennisGen(session: Session) {
+  const stages = StagesFromSession(session);
   const roster: Roster = {
-    fixtures: Array(session.stages.length)
+    fixtures: Array(stages.length)
       .fill(undefined)
       .map((_, i) =>
-        FixturesFromStage(session!.stages[i], session!.players, Date.now())
+        FixturesFromStage(stages[i], session!.players, Date.now())
       ),
   };
   document.getElementById("regenerate")?.classList.remove("d-none");

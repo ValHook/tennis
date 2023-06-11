@@ -5,12 +5,14 @@ import { StatusOr } from "./status.js";
 import { Mulberry32, PopRandomElement } from "./rng.js";
 function SessionFromInput() {
     const courts = [];
-    const match_duration_minutes = PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, 120);
+    const configuration = {
+        match_duration_minutes: PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, 120),
+    };
     const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
     for (let i = 0; i < n_courts; ++i) {
         courts.push({
             id: i,
-            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", match_duration_minutes),
+            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", configuration.match_duration_minutes),
         });
     }
     courts.sort((a, b) => a.availability_minutes - b.availability_minutes);
@@ -49,24 +51,31 @@ function SessionFromInput() {
         players.push(player);
     }
     players.sort((a, b) => a.availability_minutes - b.availability_minutes);
+    return { configuration, courts, players };
+}
+function StagesFromSession(session) {
+    const n_courts = session.courts.length;
+    const n_players = session.players.length;
     const stages = [];
-    const stage_durations = Array.from(allowed_durations)
-        .sort()
+    const stage_durations = Array.from(session.courts)
+        .map((court) => court.availability_minutes)
+        .sort((a, b) => a - b)
         .map((duration, i, durations) => i == 0 ? duration : duration - durations[i - 1]);
     let start_minutes = 0;
     for (let i = 0; i < stage_durations.length; ++i) {
         const duration = stage_durations[i];
         const end_minutes = start_minutes + duration;
-        let remaining_courts = n_courts - courts.findIndex((c) => c.availability_minutes >= end_minutes);
+        let remaining_courts = n_courts -
+            session.courts.findIndex((c) => c.availability_minutes >= end_minutes);
         if (remaining_courts > n_courts) {
             remaining_courts = 0;
         }
         let remaining_players = n_players -
-            players.findIndex((p) => p.availability_minutes >= end_minutes);
+            session.players.findIndex((p) => p.availability_minutes >= end_minutes);
         if (remaining_players > n_players) {
             remaining_players = 0;
         }
-        const n_rotations = Math.floor(duration / match_duration_minutes);
+        const n_rotations = Math.floor(duration / session.configuration.match_duration_minutes);
         const stage = {
             id: i,
             start_minutes,
@@ -93,7 +102,7 @@ function SessionFromInput() {
         stages.push(stage);
         start_minutes += duration;
     }
-    return { courts, players, stages };
+    return stages;
 }
 function FixturesFromStage(stage, players, seed) {
     const n_single_courts = stage.n_single_courts;
@@ -288,6 +297,16 @@ function main() {
         ?.addEventListener("click", (event) => {
         navigator.clipboard.writeText(document.querySelector("#output").innerText);
     });
+    document
+        .querySelector(".sample-roster")
+        ?.addEventListener("click", (event) => {
+        const session = {
+            configuration: { match_duration_minutes: 15 },
+            players: [],
+            courts: [],
+        };
+        tennisGen(session);
+    });
 }
 function changeCourtCount(count) {
     const max_courts = 4;
@@ -312,10 +331,11 @@ function changePlayerCount(count) {
     }
 }
 function tennisGen(session) {
+    const stages = StagesFromSession(session);
     const roster = {
-        fixtures: Array(session.stages.length)
+        fixtures: Array(stages.length)
             .fill(undefined)
-            .map((_, i) => FixturesFromStage(session.stages[i], session.players, Date.now())),
+            .map((_, i) => FixturesFromStage(stages[i], session.players, Date.now())),
     };
     document.getElementById("regenerate")?.classList.remove("d-none");
     document.getElementById("clipboard")?.classList.remove("d-none");
