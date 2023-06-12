@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="46px"
+   height="46px"
+   viewBox="0 0 46 46"
+   version="1.1"
+   id="svg24654"
+   sodipodi:docname="google-white.svg"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+  <sodipodi:namedview
+     id="namedview24656"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     showgrid="false"
+     inkscape:zoom="22.326087"
+     inkscape:cx="16.415774"
+     inkscape:cy="22.977605"
+     inkscape:window-width="3840"
+     inkscape:window-height="2036"
+     inkscape:window-x="-12"
+     inkscape:window-y="-12"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg24654" />
+  <!-- Generator: Sketch 3.3.3 (12081) - http://www.bohemiancoding.com/sketch -->
+  <title
+     id="title24592">btn_google_dark_normal_ios</title>
+  <desc
+     id="desc24594">Created with Sketch.</desc>
+  <defs
+     id="defs24619">
+    <filter
+       x="-0.06"
+       y="-0.06"
+       width="1.12"
+       height="1.145"
+       filterUnits="objectBoundingBox"
+       id="filter-1">
+      <feOffset
+         dx="0"
+         dy="1"
+         in="SourceAlpha"
+         result="shadowOffsetOuter1"
+         id="feOffset24596" />
+      <feGaussianBlur
+         stdDeviation="0.5"
+         in="shadowOffsetOuter1"
+         result="shadowBlurOuter1"
+         id="feGaussianBlur24598" />
+      <feColorMatrix
+         values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.168 0"
+         in="shadowBlurOuter1"
+         type="matrix"
+         result="shadowMatrixOuter1"
+         id="feColorMatrix24600" />
+      <feOffset
+         dx="0"
+         dy="0"
+         in="SourceAlpha"
+         result="shadowOffsetOuter2"
+         id="feOffset24602" />
+      <feGaussianBlur
+         stdDeviation="0.5"
+         in="shadowOffsetOuter2"
+         result="shadowBlurOuter2"
+         id="feGaussianBlur24604" />
+      <feColorMatrix
+         values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.084 0"
+         in="shadowBlurOuter2"
+         type="matrix"
+         result="shadowMatrixOuter2"
+         id="feColorMatrix24606" />
+      <feMerge
+         id="feMerge24614">
+        <feMergeNode
+           in="shadowMatrixOuter1"
+           id="feMergeNode24608" />
+        <feMergeNode
+           in="shadowMatrixOuter2"
+           id="feMergeNode24610" />
+        <feMergeNode
+           in="SourceGraphic"
+           id="feMergeNode24612" />
+      </feMerge>
+    </filter>
+    <rect
+       id="path-2"
+       x="0"
+       y="0"
+       width="40"
+       height="40"
+       rx="2" />
+    <rect
+       id="path-3"
+       x="5"
+       y="5"
+       width="38"
+       height="38"
+       rx="1" />
+  </defs>
+  <path
+     d="m 36.54189,23.320594 c 0,-1.000253 -0.08976,-1.962035 -0.256475,-2.885345 H 23 v 5.456509 h 7.591665 c -0.327005,1.763267 -1.320847,3.257235 -2.814815,4.257488 v 3.539358 h 4.558847 c 2.667342,-2.455751 4.206193,-6.07205 4.206193,-10.36801 z"
+     id="Shape"
+     fill="#4285f4"
+     sketch:type="MSShapeGroup"
+     style="fill-rule:evenodd;stroke:none;stroke-width:1.56735;fill:#ffffff" />
+  <path
+     d="m 23,37.106135 c 3.808657,0 7.001773,-1.26314 9.335697,-3.417531 L 27.77685,30.149246 C 26.51371,30.995614 24.897916,31.495741 23,31.495741 c -3.674007,0 -6.783768,-2.481397 -7.893023,-5.815575 h -4.712732 v 3.654771 C 12.715346,33.945079 17.485784,37.106135 23,37.106135 Z"
+     id="path24642"
+     fill="#34a853"
+     sketch:type="MSShapeGroup"
+     style="fill-rule:evenodd;stroke:none;stroke-width:1.56735;fill:#ffffff" />
+  <path
+     d="M 15.106977,25.680166 C 14.824854,24.833798 14.664557,23.929723 14.664557,23 c 0,-0.929722 0.160297,-1.833797 0.44242,-2.680165 V 16.665063 H 10.394245 C 9.4388753,18.569392 8.8938656,20.723783 8.8938656,23 c 0,2.276218 0.5450097,4.430609 1.5003794,6.334937 z"
+     id="path24644"
+     fill="#fbbc05"
+     sketch:type="MSShapeGroup"
+     style="fill-rule:evenodd;stroke:none;stroke-width:1.56735;fill:#ffffff" />
+  <path
+     d="m 23,14.50426 c 2.071038,0 3.930482,0.711719 5.392392,2.109508 l 4.045895,-4.045896 C 29.995361,10.291655 26.802245,8.8938656 23,8.8938656 c -5.514216,0 -10.284654,3.1610564 -12.605755,7.7711974 l 4.712732,3.654772 C 16.216232,16.985657 19.325993,14.50426 23,14.50426 Z"
+     id="path24646"
+     fill="#ea4335"
+     sketch:type="MSShapeGroup"
+     style="fill-rule:evenodd;stroke:none;stroke-width:1.56735;fill:#ffffff" />
+  <metadata
+     id="metadata24827">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>btn_google_dark_normal_ios</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>
