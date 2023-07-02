@@ -29,14 +29,17 @@ export function PromptInt(
   if (set && !set.has(result)) {
     Fail(
       id,
-      "Number " + result + " must be one of " + Array.from(set).join(", ")
+      "Number " +
+        result +
+        " must be one of [" +
+        Array.from(set).join(", ") +
+        "]"
     );
   }
   return result;
 }
 
 export function Fail<T>(id: string, output: T) {
-  console.error(output);
   const input = document.querySelector<HTMLInputElement>("#" + id);
   if (input) {
     input.classList.add("is-invalid");
@@ -48,7 +51,7 @@ export function Fail<T>(id: string, output: T) {
   } else {
     Output(output);
   }
-  throw new Error("Stopped execution.");
+  throw new Error(String(output));
 }
 
 export function Output<T>(output: T) {

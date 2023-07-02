@@ -20,12 +20,15 @@ export function PromptInt(id, ask, min = Number.MIN_SAFE_INTEGER, max = Number.M
         Fail(id, "Number " + result + " must be between " + min + " and " + max);
     }
     if (set && !set.has(result)) {
-        Fail(id, "Number " + result + " must be one of " + Array.from(set).join(", "));
+        Fail(id, "Number " +
+            result +
+            " must be one of [" +
+            Array.from(set).join(", ") +
+            "]");
     }
     return result;
 }
 export function Fail(id, output) {
-    console.error(output);
     const input = document.querySelector("#" + id);
     if (input) {
         input.classList.add("is-invalid");
@@ -37,7 +40,7 @@ export function Fail(id, output) {
     else {
         Output(output);
     }
-    throw new Error("Stopped execution.");
+    throw new Error(String(output));
 }
 export function Output(output) {
     const out = typeof output === "string" ? output : JSON.stringify(output, undefined, 2);
