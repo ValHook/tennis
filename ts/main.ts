@@ -1,7 +1,6 @@
 import { SessionFromInput, ComputeRosters } from "./algorithm";
 import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants";
 import { Prompt, PromptInt, Fail, Output } from "./prompt";
-import { StatusOr } from "./status";
 import { Session, Input, StageRoster } from "./types";
 
 declare global {
@@ -18,6 +17,7 @@ function InputFromDOM(): Input {
     court_availabilities: [],
     player_names: [],
     player_availabilties: [],
+    seed: Date.now(),
   };
   input.match_duration = PromptInt(
     "inputMatchDuration",
@@ -91,6 +91,57 @@ function InputFromDOM(): Input {
   return input;
 }
 
+function DOMFromInput(input: Input) {
+  document.querySelector<HTMLInputElement>("#inputMatchDuration")!.value = String(
+    input.match_duration
+  );
+  ChangeCourtCount(input.court_availabilities.length);
+  document.querySelector<HTMLInputElement>("#inputCourtCount")!.value = String(
+    input.court_availabilities.length
+  );
+  ChangePlayerCount(input.player_names.length);
+  document.querySelector<HTMLInputElement>("#inputPlayerCount")!.value = String(
+    input.player_names.length
+  );
+  for (let i = 0; i < input.court_availabilities.length; ++i) {
+    document.querySelector<HTMLInputElement>("#inputCourtDuration" + i)!.value = String(
+      input.court_availabilities[i]
+    );
+  }
+  for (let i = 0; i < input.player_names.length; ++i) {
+    document.querySelector<HTMLInputElement>("#inputPlayerName" + i)!.value = String(
+      input.player_names[i]
+    );
+  }
+  for (let i = 0; i < input.player_availabilties.length; ++i) {
+    document.querySelector<HTMLInputElement>("#inputPlayerMinutes" + i)!.value = String(
+      input.player_availabilties[i]
+    );
+  }
+}
+
+function InputFromHash(hash: string): Input {
+  const payload = JSON.parse(atob(hash));
+  return {
+    seed: payload[0],
+    match_duration: payload[1],
+    court_availabilities: payload[2],
+    player_names: payload[3],
+    player_availabilties: payload[4],
+  };
+}
+
+function HashFromInput(input: Input): string {
+  const payload = [
+    input.seed,
+    input.match_duration,
+    input.court_availabilities,
+    input.player_names,
+    input.player_availabilties,
+  ];
+  return btoa(JSON.stringify(payload));
+}
+
 function ChangeCourtCount(count: number) {
   document.querySelector<HTMLInputElement>("#courtCount")!.innerText = String(count);
   for (let i = 0; i < MAX_COURTS; ++i) {
@@ -114,9 +165,8 @@ function ChangePlayerCount(count: number) {
 }
 
 function Generate() {
-  window.input = InputFromDOM();
   window.session = SessionFromInput(window.input);
-  window.rosters = ComputeRosters(window.session, Date.now());
+  window.rosters = ComputeRosters(window.session, window.input.seed);
   document.getElementById("regenerate")?.classList.remove("d-none");
   document.getElementById("clipboard")?.classList.remove("d-none");
   Output(window.rosters);
@@ -140,11 +190,12 @@ function OnDOMReady() {
     });
 
   // Generate, re-generate & copy buttons.
-  document.querySelector<HTMLInputElement>("#generate")?.addEventListener("click", (_) => {
-    Generate();
-  });
-  document.querySelector<HTMLInputElement>("#regenerate")?.addEventListener("click", (_) => {
-    Generate();
+  document.querySelectorAll<HTMLInputElement>("#generate, #regenerate").forEach((element) => {
+    element.addEventListener("click", (_) => {
+      window.input = InputFromDOM();
+      window.history.pushState(null, "", "#" + HashFromInput(window.input));
+      Generate();
+    });
   });
   document.querySelector<HTMLInputElement>("#clipboard")?.addEventListener("click", (_) => {
     navigator.clipboard.writeText(document.querySelector<HTMLInputElement>("#output")!.innerText);
@@ -156,6 +207,20 @@ function OnDOMReady() {
   });
 }
 
+function OnHashChange() {
+  if (!window.location.hash) {
+    window.location.reload();
+    return;
+  }
+  window.input = InputFromHash(window.location.hash.substring(1));
+  DOMFromInput(window.input);
+  Generate();
+}
+
 window.addEventListener("DOMContentLoaded", (event) => {
   OnDOMReady();
+  window.onhashchange = OnHashChange;
+  if (window.location.hash) {
+    OnHashChange();
+  }
 });

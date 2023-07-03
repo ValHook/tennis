@@ -7,6 +7,7 @@ function InputFromDOM() {
         court_availabilities: [],
         player_names: [],
         player_availabilties: [],
+        seed: Date.now(),
     };
     input.match_duration = PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, 120);
     const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
@@ -54,6 +55,42 @@ function InputFromDOM() {
     input.player_availabilties.sort((a, b) => a - b);
     return input;
 }
+function DOMFromInput(input) {
+    document.querySelector("#inputMatchDuration").value = String(input.match_duration);
+    ChangeCourtCount(input.court_availabilities.length);
+    document.querySelector("#inputCourtCount").value = String(input.court_availabilities.length);
+    ChangePlayerCount(input.player_names.length);
+    document.querySelector("#inputPlayerCount").value = String(input.player_names.length);
+    for (let i = 0; i < input.court_availabilities.length; ++i) {
+        document.querySelector("#inputCourtDuration" + i).value = String(input.court_availabilities[i]);
+    }
+    for (let i = 0; i < input.player_names.length; ++i) {
+        document.querySelector("#inputPlayerName" + i).value = String(input.player_names[i]);
+    }
+    for (let i = 0; i < input.player_availabilties.length; ++i) {
+        document.querySelector("#inputPlayerMinutes" + i).value = String(input.player_availabilties[i]);
+    }
+}
+function InputFromHash(hash) {
+    const payload = JSON.parse(atob(hash));
+    return {
+        seed: payload[0],
+        match_duration: payload[1],
+        court_availabilities: payload[2],
+        player_names: payload[3],
+        player_availabilties: payload[4],
+    };
+}
+function HashFromInput(input) {
+    const payload = [
+        input.seed,
+        input.match_duration,
+        input.court_availabilities,
+        input.player_names,
+        input.player_availabilties,
+    ];
+    return btoa(JSON.stringify(payload));
+}
 function ChangeCourtCount(count) {
     document.querySelector("#courtCount").innerText = String(count);
     for (let i = 0; i < MAX_COURTS; ++i) {
@@ -77,9 +114,8 @@ function ChangePlayerCount(count) {
     }
 }
 function Generate() {
-    window.input = InputFromDOM();
     window.session = SessionFromInput(window.input);
-    window.rosters = ComputeRosters(window.session, Date.now());
+    window.rosters = ComputeRosters(window.session, window.input.seed);
     document.getElementById("regenerate")?.classList.remove("d-none");
     document.getElementById("clipboard")?.classList.remove("d-none");
     Output(window.rosters);
@@ -100,11 +136,12 @@ function OnDOMReady() {
         ChangePlayerCount(parseInt(event?.target?.value));
     });
     // Generate, re-generate & copy buttons.
-    document.querySelector("#generate")?.addEventListener("click", (_) => {
-        Generate();
-    });
-    document.querySelector("#regenerate")?.addEventListener("click", (_) => {
-        Generate();
+    document.querySelectorAll("#generate, #regenerate").forEach((element) => {
+        element.addEventListener("click", (_) => {
+            window.input = InputFromDOM();
+            window.history.pushState(null, "", "#" + HashFromInput(window.input));
+            Generate();
+        });
     });
     document.querySelector("#clipboard")?.addEventListener("click", (_) => {
         navigator.clipboard.writeText(document.querySelector("#output").innerText);
@@ -114,7 +151,20 @@ function OnDOMReady() {
         element.addEventListener("input", (_) => element.classList.remove("is-invalid"));
     });
 }
+function OnHashChange() {
+    if (!window.location.hash) {
+        window.location.reload();
+        return;
+    }
+    window.input = InputFromHash(window.location.hash.substring(1));
+    DOMFromInput(window.input);
+    Generate();
+}
 window.addEventListener("DOMContentLoaded", (event) => {
     OnDOMReady();
+    window.onhashchange = OnHashChange;
+    if (window.location.hash) {
+        OnHashChange();
+    }
 });
 //# sourceMappingURL=main.js.map

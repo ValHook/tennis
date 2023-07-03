@@ -5,6 +5,7 @@ export interface Input {
   court_availabilities: number[];
   player_names: string[];
   player_availabilties: number[];
+  seed: number;
 }
 
 export interface Court {
