@@ -18,12 +18,15 @@ export function ConstraintsForRelaxingsCount(relaxings_count, stage) {
     const single_against_probability = Math.pow(single_probability, 2) / NChooseK(stage.n_single_players - 1, 1);
     const double_with_probability = Math.pow(double_probability, 2) / NChooseK(stage.n_double_players - 1, 1);
     // Relaxable parameters.
+    let resting_cooldown = CooldownForProbability(resting_probability);
     let single_cooldown = CooldownForProbability(single_probability);
     let double_cooldown = CooldownForProbability(double_probability);
-    let double_with_spread = preferred_max_spread;
+    let single_against_spread = preferred_max_spread;
     let double_against_spread = preferred_max_spread;
     let double_against_cooldown = stage.n_players > 4 ? preferred_double_against_min_cooldown : 0;
+    let double_with_spread = preferred_max_spread;
     if (relaxings_count-- > 0) {
+        resting_cooldown = Math.floor(resting_cooldown / 2);
         single_cooldown = 0;
         double_against_cooldown = 0;
     }
@@ -35,6 +38,7 @@ export function ConstraintsForRelaxingsCount(relaxings_count, stage) {
     }
     if (relaxings_count-- > 0) {
         ++double_against_spread;
+        ++single_against_spread;
     }
     if (relaxings_count-- > 0) {
         double_against_cooldown = Math.floor(double_against_cooldown / 2);
@@ -46,13 +50,13 @@ export function ConstraintsForRelaxingsCount(relaxings_count, stage) {
     const max_spreads = {
         [HappeningType.RESTING]: preferred_max_spread,
         [HappeningType.PLAYING_SINGLE]: preferred_max_spread,
-        [HappeningType.PLAYING_SINGLE_AGAINST]: preferred_max_spread,
+        [HappeningType.PLAYING_SINGLE_AGAINST]: single_against_spread,
         [HappeningType.PLAYING_DOUBLE]: preferred_max_spread,
         [HappeningType.PLAYING_DOUBLE_AGAINST]: double_against_spread,
         [HappeningType.PLAYING_DOUBLE_WITH]: double_with_spread,
     };
     const min_cooldowns = {
-        [HappeningType.RESTING]: CooldownForProbability(resting_probability),
+        [HappeningType.RESTING]: resting_cooldown,
         [HappeningType.PLAYING_SINGLE]: single_cooldown,
         [HappeningType.PLAYING_SINGLE_AGAINST]: CooldownForProbability(single_against_probability),
         [HappeningType.PLAYING_DOUBLE]: double_cooldown,
