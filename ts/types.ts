@@ -29,6 +29,8 @@ export interface Stage {
   n_double_courts: number;
   n_resting_players_per_rotation: number;
   n_active_players: number;
+  n_single_players: number;
+  n_double_players: number;
 }
 
 export interface Session {
@@ -55,8 +57,17 @@ export interface Rotation {
   doubles: MatchDouble[];
 }
 
-export interface Roster {
-  rotations: StatusOr<Rotation[][]>;
+export interface Constraints {
+  max_spreads: { [key in HappeningType]: number };
+  min_cooldowns: { [key in HappeningType]: number };
+}
+
+export interface StageRoster {
+  stage_id: number;
+  rotations: StatusOr<Rotation[]>;
+  deepest_rotation_reached: number;
+  constraints: Constraints;
+  relaxings_count: number;
 }
 
 export enum HappeningType {
@@ -77,36 +88,20 @@ export class Happening {
   }
   static PlayingSingleAgainst(player_a: string, player_b: string) {
     const players = [player_a, player_b].sort();
-    return new Happening(
-      players[0],
-      players[1],
-      HappeningType.PLAYING_SINGLE_AGAINST
-    );
+    return new Happening(players[0], players[1], HappeningType.PLAYING_SINGLE_AGAINST);
   }
   static PlayingDouble(player: string) {
     return new Happening(player, null, HappeningType.PLAYING_DOUBLE);
   }
   static PlayingDoubleAgainst(player_a: string, player_b: string) {
     const players = [player_a, player_b].sort();
-    return new Happening(
-      players[0],
-      players[1],
-      HappeningType.PLAYING_DOUBLE_AGAINST
-    );
+    return new Happening(players[0], players[1], HappeningType.PLAYING_DOUBLE_AGAINST);
   }
   static PlayingDoubleWith(player_a: string, player_b: string) {
     const players = [player_a, player_b].sort();
-    return new Happening(
-      players[0],
-      players[1],
-      HappeningType.PLAYING_DOUBLE_WITH
-    );
+    return new Happening(players[0], players[1], HappeningType.PLAYING_DOUBLE_WITH);
   }
-  protected constructor(
-    player_a: string,
-    player_b: string | null,
-    type: HappeningType
-  ) {
+  protected constructor(player_a: string, player_b: string | null, type: HappeningType) {
     this.player_a = player_a;
     this.player_b = player_b;
     this.type = type;

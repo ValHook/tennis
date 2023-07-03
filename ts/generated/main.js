@@ -1,4 +1,4 @@
-import { SessionFromInput, ComputeRoster } from "./algorithm.js";
+import { SessionFromInput, ComputeRosters } from "./algorithm.js";
 import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
 function InputFromDOM() {
@@ -49,15 +49,13 @@ function InputFromDOM() {
         .map((n, i) => {
         return { name: n, index: i };
     })
-        .sort((a, b) => input.player_availabilties[a.index] -
-        input.player_availabilties[b.index])
+        .sort((a, b) => input.player_availabilties[a.index] - input.player_availabilties[b.index])
         .map((ni) => ni.name);
     input.player_availabilties.sort((a, b) => a - b);
     return input;
 }
 function ChangeCourtCount(count) {
-    document.querySelector("#courtCount").innerText =
-        String(count);
+    document.querySelector("#courtCount").innerText = String(count);
     for (let i = 0; i < MAX_COURTS; ++i) {
         if (i < count) {
             document.querySelector("#court" + i)?.classList.remove("d-none");
@@ -68,8 +66,7 @@ function ChangeCourtCount(count) {
     }
 }
 function ChangePlayerCount(count) {
-    document.querySelector("#playerCount").innerText =
-        String(count);
+    document.querySelector("#playerCount").innerText = String(count);
     for (let i = 0; i < MAX_PLAYERS; ++i) {
         if (i < count) {
             document.querySelector("#player" + i)?.classList.remove("d-none");
@@ -82,10 +79,10 @@ function ChangePlayerCount(count) {
 function Generate() {
     window.input = InputFromDOM();
     window.session = SessionFromInput(window.input);
-    window.roster = ComputeRoster(window.session, Date.now());
+    window.rosters = ComputeRosters(window.session, Date.now());
     document.getElementById("regenerate")?.classList.remove("d-none");
     document.getElementById("clipboard")?.classList.remove("d-none");
-    Output(window.roster);
+    Output(window.rosters);
 }
 function OnDOMReady() {
     // Initial sync # of courts & players.
@@ -103,19 +100,13 @@ function OnDOMReady() {
         ChangePlayerCount(parseInt(event?.target?.value));
     });
     // Generate, re-generate & copy buttons.
-    document
-        .querySelector("#generate")
-        ?.addEventListener("click", (_) => {
+    document.querySelector("#generate")?.addEventListener("click", (_) => {
         Generate();
     });
-    document
-        .querySelector("#regenerate")
-        ?.addEventListener("click", (_) => {
+    document.querySelector("#regenerate")?.addEventListener("click", (_) => {
         Generate();
     });
-    document
-        .querySelector("#clipboard")
-        ?.addEventListener("click", (_) => {
+    document.querySelector("#clipboard")?.addEventListener("click", (_) => {
         navigator.clipboard.writeText(document.querySelector("#output").innerText);
     });
     // Input error cleaners.

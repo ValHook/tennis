@@ -9,15 +9,21 @@ import {
   Input,
   HappeningType,
   Happening,
-  Roster,
+  StageRoster,
+  Constraints,
 } from "./types";
 import {
-  MAX_DELTAS_PER_HAPPENING_TYPE,
-  MAX_SIMULATIONS_PER_NODE,
+  ConstraintsForRelaxingsCount,
+  MAX_ATTEMPTS_TO_MAKE_ROTATION_PROPOSALS,
+  MAX_CONSTRAINT_RELAXINGS,
+  MAX_SUBOPTIMAL_ROTATION_PROPOSAL_ALTERNATIVES_PER_NODE,
+  MAX_ROTATION_PROPOSALS_PER_NODE,
+  MAX_SIMULATION_TIME_SECONDS,
+  NChooseK,
   NUM_PLAYERS_DOUBLE,
   NUM_PLAYERS_SINGLE,
 } from "./constants";
-import { Status, StatusOr } from "./status";
+import { StatusOr } from "./status";
 import { Rng, PopRandomElement, Mulberry32 } from "./rng";
 
 export function SessionFromInput(input: Input): Session {
@@ -48,9 +54,7 @@ export function SessionFromInput(input: Input): Session {
   const stages: Stage[] = [];
   const stage_durations = Array.from(allowed_durations)
     .sort((a, b) => a - b)
-    .map((duration, i, durations) =>
-      i == 0 ? duration : duration - durations[i - 1]
-    );
+    .map((duration, i, durations) => (i == 0 ? duration : duration - durations[i - 1]));
   let start_minutes = 0;
   for (let i = 0; i < stage_durations.length; ++i) {
     const duration = stage_durations[i];
@@ -61,8 +65,7 @@ export function SessionFromInput(input: Input): Session {
       remaining_courts = 0;
     }
     let remaining_players =
-      n_players -
-      players.findIndex((p) => p.availability_minutes >= end_minutes);
+      n_players - players.findIndex((p) => p.availability_minutes >= end_minutes);
     if (remaining_players > n_players) {
       remaining_players = 0;
     }
@@ -79,6 +82,8 @@ export function SessionFromInput(input: Input): Session {
       n_double_courts: 0,
       n_resting_players_per_rotation: 0,
       n_active_players: 0,
+      n_single_players: 0,
+      n_double_players: 0,
     };
     for (; remaining_courts > 0; --remaining_courts) {
       if (remaining_courts * NUM_PLAYERS_DOUBLE > remaining_players) {
@@ -91,6 +96,8 @@ export function SessionFromInput(input: Input): Session {
     }
     stage.n_resting_players_per_rotation = remaining_players;
     stage.n_active_players = stage.n_players - remaining_players;
+    stage.n_single_players = stage.n_single_courts * NUM_PLAYERS_SINGLE;
+    stage.n_double_players = stage.n_double_courts * NUM_PLAYERS_DOUBLE;
     stages.push(stage);
     start_minutes += duration;
   }
@@ -98,44 +105,105 @@ export function SessionFromInput(input: Input): Session {
   return { courts, players, stages };
 }
 
-export function ComputeRoster(session: Session, seed: number): Roster {
+export function ComputeRosters(session: Session, seed: number): StageRoster[] {
+  const deadline = Date.now() + 1000 * MAX_SIMULATION_TIME_SECONDS;
   const rng = Mulberry32(seed);
-  const rotations: Rotation[][] = [];
+  const rosters: StageRoster[] = [];
   for (let i = 0; i < session.stages.length; ++i) {
     const stage = session.stages[i];
-    const checker = new HappeningDeltaChecker(stage.n_players);
-    const stage_rotations = ComputeStageRotations(session, i, 0, checker, rng);
-    if (!stage_rotations.ok()) {
-      return {
-        rotations: StatusOr.Error<Rotation[][]>(
-          "Problematic stage: " +
-            i +
-            ". Most common error: " +
-            stage_rotations.error()
-        ),
-      };
-    }
-    rotations.push(stage_rotations.value());
+    const checker = new ConstraintsChecker(stage);
+    const stage_roster = ComputeStageRoster(session, i, 0, checker, deadline, rng);
+    rosters.push(stage_roster);
   }
-  return {
-    rotations: StatusOr.Ok(rotations),
-  };
+  return rosters;
 }
 
-function ComputeStageRotations(
+function ComputeStageRoster(
   session: Session,
   stage_id: number,
   rotation_id: number,
-  checker: HappeningDeltaChecker,
+  checker: ConstraintsChecker,
+  deadline: number,
   rng: Rng
-): StatusOr<Rotation[]> {
-  const stage = session.stages[stage_id];
-  if (rotation_id >= stage.n_rotations) {
-    return StatusOr.Ok([]);
+): StageRoster {
+  if (rotation_id >= session.stages[stage_id].n_rotations) {
+    return {
+      rotations: StatusOr.Ok([]),
+      stage_id: stage_id,
+      deepest_rotation_reached: rotation_id,
+      constraints: checker.constraints,
+      relaxings_count: checker.relaxings_count,
+    };
   }
-  const rejections: Record<string, number> = {};
-  const downstream_rejections: Record<string, number> = {};
-  for (let i = 0; i < MAX_SIMULATIONS_PER_NODE; ++i) {
+
+  checker.strictenConstraintsIfPossible();
+  const optimal_relaxings = checker.relaxings_count;
+  let deepest_failure: StageRoster = {
+    rotations: StatusOr.Error("Couldn't make further proposals."),
+    stage_id: stage_id,
+    deepest_rotation_reached: rotation_id,
+    constraints: checker.constraints,
+    relaxings_count: checker.relaxings_count,
+  };
+  let best_success: StageRoster | undefined = undefined;
+  let successes = 0;
+
+  const proposals = MakeRotationProposals(session, stage_id, checker, deadline, rng);
+  for (
+    let proposal = proposals.next();
+    !proposal.done &&
+    best_success?.relaxings_count !== optimal_relaxings &&
+    successes < MAX_SUBOPTIMAL_ROTATION_PROPOSAL_ALTERNATIVES_PER_NODE;
+    proposal = proposals.next()
+  ) {
+    const roster = ComputeStageRoster(
+      session,
+      stage_id,
+      rotation_id + 1,
+      proposal.value.downstream_checker,
+      deadline,
+      rng
+    );
+    if (roster.rotations.ok()) {
+      ++successes;
+      if (!best_success || roster.relaxings_count < best_success!.relaxings_count) {
+        best_success = {
+          rotations: StatusOr.Ok([proposal.value.rotation].concat(roster.rotations.value())),
+          stage_id: roster.stage_id,
+          deepest_rotation_reached: roster.deepest_rotation_reached,
+          constraints: roster.constraints,
+          relaxings_count: roster.relaxings_count,
+        };
+      }
+    } else {
+      if (
+        !deepest_failure ||
+        roster.deepest_rotation_reached > deepest_failure.deepest_rotation_reached ||
+        (roster.deepest_rotation_reached == deepest_failure.deepest_rotation_reached &&
+          roster.relaxings_count > deepest_failure.relaxings_count)
+      ) {
+        deepest_failure = roster;
+      }
+    }
+  }
+
+  return (best_success || deepest_failure)!;
+}
+
+function* MakeRotationProposals(
+  session: Session,
+  stage_id: number,
+  checker: ConstraintsChecker,
+  deadline: number,
+  rng: Rng
+) {
+  const stage = session.stages[stage_id];
+  const proposals_count = 0;
+  for (
+    let i = 0, can_relax = true;
+    can_relax && Date.now() < deadline && proposals_count < MAX_ROTATION_PROPOSALS_PER_NODE;
+    ++i
+  ) {
     // Generate rotation proposal.
     const active_players = session.players
       .slice(session.players.length - stage.n_players)
@@ -167,91 +235,55 @@ function ComputeStageRotations(
       doubles,
     };
     // Check constraints.
-    const checker_with_proposal = checker.copy();
+    const downstream_checker = checker.copy();
     for (const resting_player of rotation.resting_players) {
-      checker_with_proposal.add(Happening.Resting(resting_player));
+      downstream_checker.add(Happening.Resting(resting_player));
     }
     for (const single of rotation.singles) {
-      checker_with_proposal.add(Happening.PlayingSingle(single.player_a));
-      checker_with_proposal.add(Happening.PlayingSingle(single.player_b));
-      checker_with_proposal.add(
-        Happening.PlayingSingleAgainst(single.player_a, single.player_b)
-      );
+      downstream_checker.add(Happening.PlayingSingle(single.player_a));
+      downstream_checker.add(Happening.PlayingSingle(single.player_b));
+      downstream_checker.add(Happening.PlayingSingleAgainst(single.player_a, single.player_b));
     }
     for (const double of rotation.doubles) {
-      checker_with_proposal.add(Happening.PlayingDouble(double.player_a1));
-      checker_with_proposal.add(Happening.PlayingDouble(double.player_a2));
-      checker_with_proposal.add(Happening.PlayingDouble(double.player_b1));
-      checker_with_proposal.add(Happening.PlayingDouble(double.player_b2));
-      checker_with_proposal.add(
-        Happening.PlayingDoubleAgainst(double.player_a1, double.player_b1)
-      );
-      checker_with_proposal.add(
-        Happening.PlayingDoubleAgainst(double.player_a1, double.player_b2)
-      );
-      checker_with_proposal.add(
-        Happening.PlayingDoubleAgainst(double.player_a2, double.player_b1)
-      );
-      checker_with_proposal.add(
-        Happening.PlayingDoubleAgainst(double.player_a2, double.player_b2)
-      );
-      checker_with_proposal.add(
-        Happening.PlayingDoubleWith(double.player_a1, double.player_a2)
-      );
-      checker_with_proposal.add(
-        Happening.PlayingDoubleWith(double.player_b1, double.player_b2)
-      );
+      downstream_checker.add(Happening.PlayingDouble(double.player_a1));
+      downstream_checker.add(Happening.PlayingDouble(double.player_a2));
+      downstream_checker.add(Happening.PlayingDouble(double.player_b1));
+      downstream_checker.add(Happening.PlayingDouble(double.player_b2));
+      downstream_checker.add(Happening.PlayingDoubleAgainst(double.player_a1, double.player_b1));
+      downstream_checker.add(Happening.PlayingDoubleAgainst(double.player_a1, double.player_b2));
+      downstream_checker.add(Happening.PlayingDoubleAgainst(double.player_a2, double.player_b1));
+      downstream_checker.add(Happening.PlayingDoubleAgainst(double.player_a2, double.player_b2));
+      downstream_checker.add(Happening.PlayingDoubleWith(double.player_a1, double.player_a2));
+      downstream_checker.add(Happening.PlayingDoubleWith(double.player_b1, double.player_b2));
     }
-    const validation = checker_with_proposal.validate();
-    if (!validation.ok()) {
-      rejections[validation.error()] =
-        (rejections[validation.error()] || 0) + 1;
-      continue;
+    if (downstream_checker.validateAndAdvanceToNextRotation()) {
+      yield {
+        rotation,
+        downstream_checker,
+      };
+    } else if (
+      i % Math.floor(MAX_ATTEMPTS_TO_MAKE_ROTATION_PROPOSALS / MAX_CONSTRAINT_RELAXINGS) ==
+      0
+    ) {
+      can_relax = checker.relaxConstraintsIfPossible();
     }
-    // Recurse.
-    const next_rotations = ComputeStageRotations(
-      session,
-      stage_id,
-      rotation_id + 1,
-      checker_with_proposal,
-      rng
-    );
-    if (!next_rotations.ok()) {
-      downstream_rejections[next_rotations.error()] =
-        (downstream_rejections[next_rotations.error()] || 0) + 1;
-      continue;
-    }
-    return StatusOr.Ok([rotation].concat(next_rotations.value()));
   }
-  // Report rejections upstream if needed.
-  const could_advance_downstream =
-    Object.keys(downstream_rejections).length > 0;
-  const most_representative_rejection_pool = could_advance_downstream
-    ? downstream_rejections
-    : rejections;
-  const most_representative_rejection = Object.entries(
-    most_representative_rejection_pool
-  ).reduce((best, next) => {
-    if (!best) {
-      return next;
-    }
-    return next[1] > best[1] ? next : best;
-  });
-  return StatusOr.Error<Rotation[]>(
-    could_advance_downstream
-      ? most_representative_rejection[0]
-      : [
-          most_representative_rejection[0],
-          most_representative_rejection[1],
-          "times",
-          "at rotation:",
-          rotation_id,
-        ].join(" ")
-  );
 }
 
-export class HappeningDeltaChecker {
-  constructor(n_players: number) {
+export class ConstraintsChecker {
+  constructor(stage: Stage) {
+    this.stage = stage;
+    this.rotation_id = 0;
+    this.relaxings_count = 0;
+    const n_player_pairs = NChooseK(stage.n_players, 2);
+    this.permutations = {
+      [HappeningType.RESTING]: stage.n_players,
+      [HappeningType.PLAYING_SINGLE]: stage.n_players,
+      [HappeningType.PLAYING_SINGLE_AGAINST]: n_player_pairs,
+      [HappeningType.PLAYING_DOUBLE]: stage.n_players,
+      [HappeningType.PLAYING_DOUBLE_AGAINST]: n_player_pairs,
+      [HappeningType.PLAYING_DOUBLE_WITH]: n_player_pairs,
+    };
     this.happenings = {
       [HappeningType.RESTING]: {},
       [HappeningType.PLAYING_SINGLE]: {},
@@ -260,36 +292,49 @@ export class HappeningDeltaChecker {
       [HappeningType.PLAYING_DOUBLE_AGAINST]: {},
       [HappeningType.PLAYING_DOUBLE_WITH]: {},
     };
-    const n_player_pairs = this.nChooseK(n_players, 2);
-    this.permutations = {
-      [HappeningType.RESTING]: n_players,
-      [HappeningType.PLAYING_SINGLE]: n_players,
-      [HappeningType.PLAYING_SINGLE_AGAINST]: n_player_pairs,
-      [HappeningType.PLAYING_DOUBLE]: n_players,
-      [HappeningType.PLAYING_DOUBLE_AGAINST]: n_player_pairs,
-      [HappeningType.PLAYING_DOUBLE_WITH]: n_player_pairs,
-    };
-    this.n_players = n_players;
+    this.insertion_rotations = {};
+    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
   }
+
   copy() {
-    const out = new HappeningDeltaChecker(this.n_players);
-    Object.keys(this.happenings).forEach((type) => {
-      const casted_type = type as unknown as HappeningType;
-      out.happenings[casted_type] = this.recordCopy(
-        this.happenings[casted_type]
-      );
-    });
+    const out = new ConstraintsChecker(this.stage);
+    out.rotation_id = this.rotation_id;
+    out.relaxings_count = this.relaxings_count;
+    out.happenings = this.recordCopy(this.happenings);
+    out.insertion_rotations = this.recordCopy(this.insertion_rotations);
+    out.constraints = this.constraints; // constraints are immutable, no deep copy required.
     return out;
   }
 
   add(happening: Happening) {
     const serialized = JSON.stringify(happening);
-    const happening_type_map = this.happenings[happening.type];
-    const prev_counter = happening_type_map[serialized] || 0;
-    happening_type_map[serialized] = prev_counter + 1;
+    // Add happening.
+    if (!this.happenings[happening.type][serialized]) {
+      this.happenings[happening.type][serialized] = 0;
+    }
+    ++this.happenings[happening.type][serialized];
+    // Add insertion rotation.
+    if (!this.insertion_rotations[serialized]) {
+      this.insertion_rotations[serialized] = [];
+    }
+    this.insertion_rotations[serialized].push(this.rotation_id);
   }
 
-  validate() {
+  validateAndAdvanceToNextRotation() {
+    // Validate cooldowns.
+    for (const [happening, insertions] of Object.entries(this.insertion_rotations)) {
+      if (insertions.length < 2) {
+        continue;
+      }
+      const type = (JSON.parse(happening) as Happening).type;
+      const observed_cooldown =
+        insertions[insertions.length - 1] - insertions[insertions.length - 2] - 1;
+      const min_cooldown = this.constraints.min_cooldowns[type];
+      if (observed_cooldown < min_cooldown) {
+        return false;
+      }
+    }
+    // Validate spreads.
     for (const [type, record] of Object.entries(this.happenings)) {
       const casted_type = type as unknown as HappeningType;
       const min =
@@ -297,54 +342,41 @@ export class HappeningDeltaChecker {
           ? 0
           : Math.min(...Object.values(record));
       const max = Math.max(...Object.values(record));
-      const delta = max - min;
-      if (delta > MAX_DELTAS_PER_HAPPENING_TYPE[casted_type]) {
-        return Status.Error(
-          "(type=" +
-            casted_type +
-            ", max_delta=" +
-            MAX_DELTAS_PER_HAPPENING_TYPE[casted_type] +
-            ", observed_delta=" +
-            delta +
-            ")"
-        );
+      const observed_spread = max - min;
+      const max_spread = this.constraints.max_spreads[casted_type];
+      if (observed_spread > max_spread) {
+        return false;
       }
     }
-    this.log();
-    return Status.Ok();
+    ++this.rotation_id;
+    return true;
   }
 
-  protected log() {
-    console.log("HappeningDeltaChecker");
-    console.log("Players: " + this.n_players);
-    console.log("Permutations");
-    for (const [type, value] of Object.entries(this.permutations)) {
-      const casted_type = type as unknown as HappeningType;
-      console.log(casted_type + ": " + value);
+  relaxConstraintsIfPossible() {
+    if (this.relaxings_count == MAX_CONSTRAINT_RELAXINGS) {
+      return false;
     }
-    console.log("Happenings");
-    for (const [type, map] of Object.entries(this.happenings)) {
-      const casted_type = type as unknown as HappeningType;
-      console.log(casted_type);
-      console.log(Object.entries(map));
+    ++this.relaxings_count;
+    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
+    return true;
+  }
+
+  strictenConstraintsIfPossible() {
+    if (this.relaxings_count == 0) {
+      return false;
     }
-    console.log("");
+    --this.relaxings_count;
+    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
   }
 
-  protected nChooseK(n: number, k: number) {
-    return this.factorial(n) / this.factorial(k) / this.factorial(n - k);
-  }
-
-  protected factorial(x: number): number {
-    return x > 1 ? x * this.factorial(x - 1) : 1;
-  }
-
-  protected recordCopy<K extends string | number | symbol, V>(
-    record: Record<K, V>
-  ) {
+  protected recordCopy<K extends string | number | symbol, V>(record: Record<K, V>) {
     return JSON.parse(JSON.stringify(record));
   }
-  protected happenings: { [key in HappeningType]: Record<string, number> };
+  protected stage: Stage;
+  protected rotation_id: number;
+  public relaxings_count: number;
   protected permutations: { [key in HappeningType]: number };
-  protected n_players: number;
+  protected happenings: { [key in HappeningType]: Record<string, number> };
+  protected insertion_rotations: Record<string, number[]>;
+  public constraints: Constraints;
 }

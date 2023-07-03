@@ -1,14 +1,14 @@
-import { SessionFromInput, ComputeRoster } from "./algorithm";
+import { SessionFromInput, ComputeRosters } from "./algorithm";
 import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants";
 import { Prompt, PromptInt, Fail, Output } from "./prompt";
 import { StatusOr } from "./status";
-import { Session, Input, Rotation, Roster } from "./types";
+import { Session, Input, StageRoster } from "./types";
 
 declare global {
   interface Window {
     input: Input;
     session: Session;
-    roster: Roster;
+    rosters: StageRoster[];
   }
 }
 
@@ -48,10 +48,7 @@ function InputFromDOM(): Input {
   const max_minutes = input.court_availabilities[n_courts - 1];
   const player_names = new Set();
   for (let i = 0; i < n_players; ++i) {
-    const player_name = Prompt(
-      "inputPlayerName" + i,
-      "Player #" + (i + 1) + " name?"
-    );
+    const player_name = Prompt("inputPlayerName" + i, "Player #" + (i + 1) + " name?");
     const player_availabilty = PromptInt(
       "inputPlayerMinutes" + i,
       "Player #" + (i + 1) + " availability in minutes?",
@@ -79,10 +76,7 @@ function InputFromDOM(): Input {
       0
     );
     if (remaining_players < court_underutilization) {
-      Fail(
-        "inputPlayerCount",
-        "Not enough remaining players to correctly utilize all the courts"
-      );
+      Fail("inputPlayerCount", "Not enough remaining players to correctly utilize all the courts");
     }
     input.player_names.push(player_name);
     input.player_availabilties.push(player_availabilty);
@@ -91,19 +85,14 @@ function InputFromDOM(): Input {
     .map((n, i) => {
       return { name: n, index: i };
     })
-    .sort(
-      (a, b) =>
-        input.player_availabilties[a.index] -
-        input.player_availabilties[b.index]
-    )
+    .sort((a, b) => input.player_availabilties[a.index] - input.player_availabilties[b.index])
     .map((ni) => ni.name);
   input.player_availabilties.sort((a, b) => a - b);
   return input;
 }
 
 function ChangeCourtCount(count: number) {
-  document.querySelector<HTMLInputElement>("#courtCount")!.innerText =
-    String(count);
+  document.querySelector<HTMLInputElement>("#courtCount")!.innerText = String(count);
   for (let i = 0; i < MAX_COURTS; ++i) {
     if (i < count) {
       document.querySelector("#court" + i)?.classList.remove("d-none");
@@ -114,8 +103,7 @@ function ChangeCourtCount(count: number) {
 }
 
 function ChangePlayerCount(count: number) {
-  document.querySelector<HTMLInputElement>("#playerCount")!.innerText =
-    String(count);
+  document.querySelector<HTMLInputElement>("#playerCount")!.innerText = String(count);
   for (let i = 0; i < MAX_PLAYERS; ++i) {
     if (i < count) {
       document.querySelector("#player" + i)?.classList.remove("d-none");
@@ -128,24 +116,16 @@ function ChangePlayerCount(count: number) {
 function Generate() {
   window.input = InputFromDOM();
   window.session = SessionFromInput(window.input);
-  window.roster = ComputeRoster(window.session, Date.now());
+  window.rosters = ComputeRosters(window.session, Date.now());
   document.getElementById("regenerate")?.classList.remove("d-none");
   document.getElementById("clipboard")?.classList.remove("d-none");
-  Output(window.roster);
+  Output(window.rosters);
 }
 
 function OnDOMReady() {
   // Initial sync # of courts & players.
-  ChangeCourtCount(
-    parseInt(
-      document.querySelector<HTMLInputElement>("#inputCourtCount")!.value
-    )
-  );
-  ChangePlayerCount(
-    parseInt(
-      document.querySelector<HTMLInputElement>("#inputPlayerCount")!.value
-    )
-  );
+  ChangeCourtCount(parseInt(document.querySelector<HTMLInputElement>("#inputCourtCount")!.value));
+  ChangePlayerCount(parseInt(document.querySelector<HTMLInputElement>("#inputPlayerCount")!.value));
 
   // # of courts & # of players change listeners.
   document
@@ -160,29 +140,19 @@ function OnDOMReady() {
     });
 
   // Generate, re-generate & copy buttons.
-  document
-    .querySelector<HTMLInputElement>("#generate")
-    ?.addEventListener("click", (_) => {
-      Generate();
-    });
-  document
-    .querySelector<HTMLInputElement>("#regenerate")
-    ?.addEventListener("click", (_) => {
-      Generate();
-    });
-  document
-    .querySelector<HTMLInputElement>("#clipboard")
-    ?.addEventListener("click", (_) => {
-      navigator.clipboard.writeText(
-        document.querySelector<HTMLInputElement>("#output")!.innerText
-      );
-    });
+  document.querySelector<HTMLInputElement>("#generate")?.addEventListener("click", (_) => {
+    Generate();
+  });
+  document.querySelector<HTMLInputElement>("#regenerate")?.addEventListener("click", (_) => {
+    Generate();
+  });
+  document.querySelector<HTMLInputElement>("#clipboard")?.addEventListener("click", (_) => {
+    navigator.clipboard.writeText(document.querySelector<HTMLInputElement>("#output")!.innerText);
+  });
 
   // Input error cleaners.
   document.querySelectorAll("input[type=text]").forEach((element) => {
-    element.addEventListener("input", (_) =>
-      element.classList.remove("is-invalid")
-    );
+    element.addEventListener("input", (_) => element.classList.remove("is-invalid"));
   });
 }
 
