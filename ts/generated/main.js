@@ -4,35 +4,40 @@ import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
 function InputFromDOM() {
     const input = {
         match_duration: 0,
-        court_availabilities: [],
-        player_names: [],
-        player_availabilties: [],
+        courts: [],
+        players: [],
         seed: Date.now(),
     };
     input.match_duration = PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, 120);
     const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
     for (let i = 0; i < n_courts; ++i) {
-        input.court_availabilities.push(PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", input.match_duration));
+        input.courts.push({
+            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", input.match_duration),
+        });
     }
-    input.court_availabilities.sort((a, b) => a - b);
-    const allowed_durations = new Set(input.court_availabilities);
+    const sorted_court_availabilities = input.courts
+        .map((c) => c.availability_minutes)
+        .sort((a, b) => a - b);
+    const allowed_durations = new Set(sorted_court_availabilities);
     const court_utilizations = Array(n_courts).fill(0);
     const n_players = PromptInt("inputPlayerCount", "How many players?", n_courts * NUM_PLAYERS_SINGLE);
-    const min_minutes = input.court_availabilities[0];
-    const max_minutes = input.court_availabilities[n_courts - 1];
+    const min_minutes = sorted_court_availabilities[0];
+    const max_minutes = sorted_court_availabilities[n_courts - 1];
     const player_names = new Set();
     for (let i = 0; i < n_players; ++i) {
-        const player_name = Prompt("inputPlayerName" + i, "Player #" + (i + 1) + " name?");
-        const player_availabilty = PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, allowed_durations);
-        if (player_names.has(player_name)) {
+        const player = {
+            name: Prompt("inputPlayerName" + i, "Player #" + (i + 1) + " name?"),
+            availability_minutes: PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, allowed_durations),
+        };
+        if (player_names.has(player.name)) {
             Fail("inputPlayerMinutes" + i, "All players must have distinct names");
         }
-        player_names.add(player_name);
+        player_names.add(player.name);
         for (let j = n_courts - 1; j >= 0; --j) {
             if (court_utilizations[j] == NUM_PLAYERS_SINGLE) {
                 continue;
             }
-            if (input.court_availabilities[j] > player_availabilty) {
+            if (sorted_court_availabilities[j] > player.availability_minutes) {
                 continue;
             }
             court_utilizations[j] += 1;
@@ -43,51 +48,49 @@ function InputFromDOM() {
         if (remaining_players < court_underutilization) {
             Fail("inputPlayerCount", "Not enough remaining players to correctly utilize all the courts");
         }
-        input.player_names.push(player_name);
-        input.player_availabilties.push(player_availabilty);
+        input.players.push(player);
     }
-    input.player_names = input.player_names
-        .map((n, i) => {
-        return { name: n, index: i };
-    })
-        .sort((a, b) => input.player_availabilties[a.index] - input.player_availabilties[b.index])
-        .map((ni) => ni.name);
-    input.player_availabilties.sort((a, b) => a - b);
     return input;
 }
 function DOMFromInput(input) {
     document.querySelector("#inputMatchDuration").value = String(input.match_duration);
-    ChangeCourtCount(input.court_availabilities.length);
-    document.querySelector("#inputCourtCount").value = String(input.court_availabilities.length);
-    ChangePlayerCount(input.player_names.length);
-    document.querySelector("#inputPlayerCount").value = String(input.player_names.length);
-    for (let i = 0; i < input.court_availabilities.length; ++i) {
-        document.querySelector("#inputCourtDuration" + i).value = String(input.court_availabilities[i]);
+    ChangeCourtCount(input.courts.length);
+    document.querySelector("#inputCourtCount").value = String(input.courts.length);
+    ChangePlayerCount(input.players.length);
+    document.querySelector("#inputPlayerCount").value = String(input.players.length);
+    for (let i = 0; i < input.courts.length; ++i) {
+        document.querySelector("#inputCourtDuration" + i).value = String(input.courts[i].availability_minutes);
     }
-    for (let i = 0; i < input.player_names.length; ++i) {
-        document.querySelector("#inputPlayerName" + i).value = String(input.player_names[i]);
+    for (let i = 0; i < input.players.length; ++i) {
+        document.querySelector("#inputPlayerName" + i).value = String(input.players[i].name);
     }
-    for (let i = 0; i < input.player_availabilties.length; ++i) {
-        document.querySelector("#inputPlayerMinutes" + i).value = String(input.player_availabilties[i]);
+    for (let i = 0; i < input.players.length; ++i) {
+        document.querySelector("#inputPlayerMinutes" + i).value = String(input.players[i].availability_minutes);
     }
 }
 function InputFromHash(hash) {
     const payload = JSON.parse(atob(hash));
+    const court_availabilities = payload[2];
+    const player_names = payload[3];
+    const player_availabilties = payload[4];
     return {
         seed: payload[0],
         match_duration: payload[1],
-        court_availabilities: payload[2],
-        player_names: payload[3],
-        player_availabilties: payload[4],
+        courts: court_availabilities.map((a) => {
+            return { availability_minutes: a };
+        }),
+        players: player_names.map((n, i) => {
+            return { name: n, availability_minutes: player_availabilties[i] };
+        }),
     };
 }
 function HashFromInput(input) {
     const payload = [
         input.seed,
         input.match_duration,
-        input.court_availabilities,
-        input.player_names,
-        input.player_availabilties,
+        input.courts.map((c) => c.availability_minutes),
+        input.players.map((p) => p.name),
+        input.players.map((p) => p.availability_minutes),
     ];
     return btoa(JSON.stringify(payload));
 }

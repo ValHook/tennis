@@ -2,14 +2,12 @@ import { Status, StatusOr } from "./status";
 
 export interface Input {
   match_duration: number;
-  court_availabilities: number[];
-  player_names: string[];
-  player_availabilties: number[];
+  courts: Court[];
+  players: Player[];
   seed: number;
 }
 
 export interface Court {
-  id: number;
   availability_minutes: number;
 }
 

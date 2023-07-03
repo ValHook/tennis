@@ -27,28 +27,14 @@ import { StatusOr } from "./status";
 import { Rng, PopRandomElement, Mulberry32 } from "./rng";
 
 export function SessionFromInput(input: Input): Session {
-  const courts: Court[] = [];
+  const courts = [...input.courts];
   const match_duration_minutes = input.match_duration;
-  const n_courts = input.court_availabilities.length;
-  for (let i = 0; i < n_courts; ++i) {
-    courts.push({
-      id: i,
-      availability_minutes: input.court_availabilities[i],
-    });
-  }
+  const n_courts = input.courts.length;
   courts.sort((a, b) => a.availability_minutes - b.availability_minutes);
-  courts.forEach((c, i) => (c.id = i));
 
-  const players: Player[] = [];
+  const players = [...input.players];
   const allowed_durations = new Set(courts.map((c) => c.availability_minutes));
-  const n_players = input.player_names.length;
-  for (let i = 0; i < n_players; ++i) {
-    const player = {
-      name: input.player_names[i],
-      availability_minutes: input.player_availabilties[i],
-    };
-    players.push(player);
-  }
+  const n_players = input.players.length;
   players.sort((a, b) => a.availability_minutes - b.availability_minutes);
 
   const stages: Stage[] = [];
