@@ -12,7 +12,7 @@ export function PromptInt(
   ask: string,
   min: number = Number.MIN_SAFE_INTEGER,
   max: number = Number.MAX_SAFE_INTEGER,
-  set: Set<number> | undefined = undefined
+  multiple_of: number | undefined = undefined
 ): number {
   const input = document.querySelector<HTMLInputElement>("#" + id);
   const result = input ? parseInt(input.value) : parseInt(window.prompt(ask) || "");
@@ -22,8 +22,8 @@ export function PromptInt(
   if (result < min || result > max) {
     Fail(id, "Number " + result + " must be between " + min + " and " + max);
   }
-  if (set && !set.has(result)) {
-    Fail(id, "Number " + result + " must be one of [" + Array.from(set).join(", ") + "]");
+  if (multiple_of && result % multiple_of != 0) {
+    Fail(id, "Number " + result + " must be a multiple of " + multiple_of);
   }
   return result;
 }

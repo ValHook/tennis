@@ -8,11 +8,11 @@ function InputFromDOM() {
         players: [],
         seed: Date.now(),
     };
-    input.match_duration = PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, 120);
+    input.match_duration = PromptInt("inputMatchDuration", "Average match duration in minutes?", 1, Infinity);
     const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
     for (let i = 0; i < n_courts; ++i) {
         input.courts.push({
-            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", input.match_duration),
+            availability_minutes: PromptInt("inputCourtDuration" + i, "Court #" + (i + 1) + " availability in minutes?", input.match_duration, Infinity, input.match_duration),
         });
     }
     const sorted_court_availabilities = input.courts
@@ -21,16 +21,16 @@ function InputFromDOM() {
     const allowed_durations = new Set(sorted_court_availabilities);
     const court_utilizations = Array(n_courts).fill(0);
     const n_players = PromptInt("inputPlayerCount", "How many players?", n_courts * NUM_PLAYERS_SINGLE);
-    const min_minutes = sorted_court_availabilities[0];
+    const min_minutes = 0;
     const max_minutes = sorted_court_availabilities[n_courts - 1];
     const player_names = new Set();
     for (let i = 0; i < n_players; ++i) {
         const player = {
             name: Prompt("inputPlayerName" + i, "Player #" + (i + 1) + " name?"),
-            availability_minutes: PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, allowed_durations),
+            availability_minutes: PromptInt("inputPlayerMinutes" + i, "Player #" + (i + 1) + " availability in minutes?", min_minutes, max_minutes, input.match_duration),
         };
         if (player_names.has(player.name)) {
-            Fail("inputPlayerMinutes" + i, "All players must have distinct names");
+            Fail("inputPlayerName" + i, "All players must have distinct names");
         }
         player_names.add(player.name);
         for (let j = n_courts - 1; j >= 0; --j) {
@@ -46,7 +46,7 @@ function InputFromDOM() {
         const remaining_players = n_players - i - 1;
         const court_underutilization = court_utilizations.reduce((total, utilization) => total + (NUM_PLAYERS_SINGLE - utilization), 0);
         if (remaining_players < court_underutilization) {
-            Fail("inputPlayerCount", "Not enough remaining players to correctly utilize all the courts");
+            Fail("inputPlayerMinutes" + i, "Not enough remaining players to correctly utilize all the courts");
         }
         input.players.push(player);
     }

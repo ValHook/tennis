@@ -22,7 +22,7 @@ function InputFromDOM(): Input {
     "inputMatchDuration",
     "Average match duration in minutes?",
     1,
-    120
+    Infinity
   );
   const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
   for (let i = 0; i < n_courts; ++i) {
@@ -30,6 +30,8 @@ function InputFromDOM(): Input {
       availability_minutes: PromptInt(
         "inputCourtDuration" + i,
         "Court #" + (i + 1) + " availability in minutes?",
+        input.match_duration,
+        Infinity,
         input.match_duration
       ),
     });
@@ -45,7 +47,7 @@ function InputFromDOM(): Input {
     "How many players?",
     n_courts * NUM_PLAYERS_SINGLE
   );
-  const min_minutes = sorted_court_availabilities[0];
+  const min_minutes = 0;
   const max_minutes = sorted_court_availabilities[n_courts - 1];
   const player_names = new Set();
   for (let i = 0; i < n_players; ++i) {
@@ -56,11 +58,11 @@ function InputFromDOM(): Input {
         "Player #" + (i + 1) + " availability in minutes?",
         min_minutes,
         max_minutes,
-        allowed_durations
+        input.match_duration
       ),
     };
     if (player_names.has(player.name)) {
-      Fail("inputPlayerMinutes" + i, "All players must have distinct names");
+      Fail("inputPlayerName" + i, "All players must have distinct names");
     }
     player_names.add(player.name);
     for (let j = n_courts - 1; j >= 0; --j) {
@@ -79,7 +81,10 @@ function InputFromDOM(): Input {
       0
     );
     if (remaining_players < court_underutilization) {
-      Fail("inputPlayerCount", "Not enough remaining players to correctly utilize all the courts");
+      Fail(
+        "inputPlayerMinutes" + i,
+        "Not enough remaining players to correctly utilize all the courts"
+      );
     }
     input.players.push(player);
   }

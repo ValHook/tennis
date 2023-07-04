@@ -1,4 +1,4 @@
-import { Status, StatusOr } from "./status";
+import { StatusOr } from "./status";
 
 export interface Input {
   match_duration: number;
@@ -65,7 +65,6 @@ export interface StageRoster {
   stage_id: number;
   rotations: StatusOr<Rotation[]>;
   deepest_rotation_reached: number;
-  constraints: Constraints;
   relaxings_count: number;
 }
 

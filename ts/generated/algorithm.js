@@ -8,7 +8,7 @@ export function SessionFromInput(input) {
     const n_courts = input.courts.length;
     courts.sort((a, b) => a.availability_minutes - b.availability_minutes);
     const players = [...input.players];
-    const allowed_durations = new Set(courts.map((c) => c.availability_minutes));
+    const allowed_durations = new Set(courts.map((c) => c.availability_minutes).concat(players.map((p) => p.availability_minutes)));
     const n_players = input.players.length;
     players.sort((a, b) => a.availability_minutes - b.availability_minutes);
     const stages = [];
@@ -80,7 +80,6 @@ function ComputeStageRoster(session, stage_id, rotation_id, checker, deadline, r
             rotations: StatusOr.Ok([]),
             stage_id: stage_id,
             deepest_rotation_reached: rotation_id,
-            constraints: checker.constraints,
             relaxings_count: checker.relaxings_count,
         };
     }
@@ -90,7 +89,6 @@ function ComputeStageRoster(session, stage_id, rotation_id, checker, deadline, r
         rotations: StatusOr.Error("Couldn't make further proposals."),
         stage_id: stage_id,
         deepest_rotation_reached: rotation_id,
-        constraints: checker.constraints,
         relaxings_count: checker.relaxings_count,
     };
     let best_success = undefined;
@@ -107,7 +105,6 @@ function ComputeStageRoster(session, stage_id, rotation_id, checker, deadline, r
                     rotations: StatusOr.Ok([proposal.value.rotation].concat(roster.rotations.value())),
                     stage_id: roster.stage_id,
                     deepest_rotation_reached: roster.deepest_rotation_reached,
-                    constraints: roster.constraints,
                     relaxings_count: roster.relaxings_count,
                 };
             }
