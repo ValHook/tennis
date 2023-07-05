@@ -72,6 +72,7 @@ export interface Stats {
   p75: number;
   highest: number;
   stddev: number;
+  count: number;
 }
 
 export interface Constraints {

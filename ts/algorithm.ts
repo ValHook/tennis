@@ -123,7 +123,6 @@ function ComputeStageRoster(
       checker: checker,
     };
   }
-
   checker.strictenConstraintsIfPossible();
   const optimal_relaxings = checker.relaxingsCount();
   const proposals = MakeRotationProposals(checker, deadline, rng);
@@ -372,15 +371,19 @@ export class ConstraintsChecker {
   }
 
   relaxingsCount() {
-    return this.relaxingsCount;
+    return this.relaxings_count_;
+  }
+
+  possiblePermutations() {
+    return this.possible_permutations_;
   }
 
   happenings(): Readonly<{ [key in HappeningType]: Record<string, number> }> {
     return this.happenings_;
   }
 
-  possiblePermutations() {
-    return this.possible_permutations_;
+  insertionRotations(): Readonly<Record<string, number[]>> {
+    return this.insertion_rotations_;
   }
 
   protected recordCopy<K extends string | number | symbol, V>(record: Record<K, V>) {
@@ -403,38 +406,69 @@ function AddStatsOrErrorToRoster(roster: SubStageRoster): StageRoster {
       error: roster.rotations.error(),
     };
   }
-  const happenings = roster.checker.happenings();
+
+  const all_happenings = roster.checker.happenings();
   const possible_permutations = roster.checker.possiblePermutations();
-  const spreads = Object.keys(happenings).reduce(function (result: any, key: string) {
+  const spreads = Object.keys(all_happenings).reduce(function (result: any, key: string) {
     const casted_key = key as HappeningType;
-    const happening_counts = Object.values(happenings[casted_key]);
+    const happening_counts = Object.values(all_happenings[casted_key]);
     const distribution = Array(possible_permutations[casted_key] - happening_counts.length)
       .fill(0)
       .concat(happening_counts);
-    result[key] = StatsFromDistribution(distribution);
+    const stats = StatsFromDistribution(distribution);
+    if (stats.ok()) {
+      result[key] = stats.value();
+    }
+    return result;
+  }, {});
+
+  const cooldowns = Object.keys(all_happenings).reduce(function (result: any, key: string) {
+    const casted_key = key as HappeningType;
+    const happenings = Object.keys(all_happenings[casted_key]);
+    const cooldown_counts = happenings.map((h) => {
+      const rotation_ids = roster.checker.insertionRotations()[h];
+      if (rotation_ids.length < 2) {
+        return Infinity;
+      }
+      let cooldown = Infinity;
+      for (let i = 1; i < rotation_ids.length; ++i) {
+        cooldown = Math.min(cooldown, rotation_ids[i] - rotation_ids[i - 1] - 1);
+      }
+      return cooldown;
+    });
+    const distribution = cooldown_counts.filter((c) => c != Infinity);
+    const stats = StatsFromDistribution(distribution);
+    if (stats.ok()) {
+      result[key] = stats.value();
+    }
     return result;
   }, {});
   return {
     stage_id: roster.checker.stage().id,
     rotations: roster.rotations.value(),
     spreads: spreads,
+    cooldowns: cooldowns,
   };
 }
 
-function StatsFromDistribution(distribution: number[]) {
+function StatsFromDistribution(distribution: number[]): StatusOr<Stats> {
+  if (distribution.length == 0) {
+    return StatusOr.Error("No distribution.");
+  }
   const sorted = [...distribution].sort((a, b) => a - b);
   const total = sorted.length;
   const average = sorted.reduce((acc, val) => acc + val, 0) / total;
-  return {
+  return StatusOr.Ok({
     lowest: sorted[0],
-    p25: Round(Quantile(sorted, 0.25), 1),
-    p50: Round(Quantile(sorted, 0.5), 1),
+    p25: Round(Quantile(sorted, 0.25).value(), 1),
+    p50: Round(Quantile(sorted, 0.5).value(), 1),
     average: Round(average, 1),
-    p75: Round(Quantile(sorted, 0.75), 1),
+    p75: Round(Quantile(sorted, 0.75).value(), 1),
     highest: sorted[total - 1],
     stddev: Round(
       Math.sqrt(sorted.reduce((acc, val) => acc + Math.pow(val - average, 2), 0) / total),
       1
     ),
-  };
+    count: distribution.length,
+  });
 }
