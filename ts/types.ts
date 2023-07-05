@@ -56,16 +56,27 @@ export interface Rotation {
   doubles: MatchDouble[];
 }
 
+export interface StageRoster {
+  stage_id: number;
+  rotations?: Rotation[];
+  spreads?: { [key in HappeningType]: Stats };
+  cooldowns?: { [key in HappeningType]: Stats };
+  error?: string;
+}
+
+export interface Stats {
+  lowest: number;
+  p25: number;
+  p50: number;
+  average: number;
+  p75: number;
+  highest: number;
+  stddev: number;
+}
+
 export interface Constraints {
   max_spreads: { [key in HappeningType]: number };
   min_cooldowns: { [key in HappeningType]: number };
-}
-
-export interface StageRoster {
-  stage_id: number;
-  rotations: StatusOr<Rotation[]>;
-  deepest_rotation_reached: number;
-  relaxings_count: number;
 }
 
 export enum HappeningType {

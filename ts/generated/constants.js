@@ -1,3 +1,4 @@
+import { NChooseK } from "./math.js";
 import { HappeningType } from "./types.js";
 export const NUM_PLAYERS_SINGLE = 2;
 export const NUM_PLAYERS_DOUBLE = 4;
@@ -70,11 +71,5 @@ export function ConstraintsForRelaxingsCount(relaxings_count, stage) {
 }
 export function CooldownForProbability(p) {
     return Math.floor((1 - p) / p);
-}
-export function NChooseK(n, k) {
-    return Factorial(n) / Factorial(k) / Factorial(n - k);
-}
-export function Factorial(x) {
-    return x > 1 ? x * Factorial(x - 1) : 1;
 }
 //# sourceMappingURL=constants.js.map

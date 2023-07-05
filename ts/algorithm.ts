@@ -9,6 +9,8 @@ import {
   Happening,
   StageRoster,
   Constraints,
+  Player,
+  Stats,
 } from "./types";
 import {
   ConstraintsForRelaxingsCount,
@@ -17,12 +19,12 @@ import {
   MAX_SUBOPTIMAL_ROTATION_PROPOSAL_ALTERNATIVES_PER_NODE,
   MAX_ROTATION_PROPOSALS_PER_NODE,
   MAX_SIMULATION_TIME_SECONDS,
-  NChooseK,
   NUM_PLAYERS_DOUBLE,
   NUM_PLAYERS_SINGLE,
 } from "./constants";
 import { StatusOr } from "./status";
 import { Rng, PopRandomElement, Mulberry32 } from "./rng";
+import { NChooseK, Quantile, Round } from "./math";
 
 export function SessionFromInput(input: Input): Session {
   const courts = [...input.courts];
@@ -97,75 +99,74 @@ export function ComputeRosters(session: Session, seed: number): StageRoster[] {
   const rosters: StageRoster[] = [];
   for (let i = 0; i < session.stages.length; ++i) {
     const stage = session.stages[i];
-    const checker = new ConstraintsChecker(stage);
-    const stage_roster = ComputeStageRoster(session, i, 0, checker, deadline, rng);
-    rosters.push(stage_roster);
+    const players = session.players.slice(session.players.length - stage.n_players);
+    const root_checker = new ConstraintsChecker(stage, players);
+    const roster = AddStatsOrErrorToRoster(ComputeStageRoster(root_checker, deadline, rng));
+    rosters.push(roster);
   }
   return rosters;
 }
 
+export interface SubStageRoster {
+  rotations: StatusOr<Rotation[]>;
+  checker: ConstraintsChecker;
+}
+
 function ComputeStageRoster(
-  session: Session,
-  stage_id: number,
-  rotation_id: number,
   checker: ConstraintsChecker,
   deadline: number,
   rng: Rng
-): StageRoster {
-  if (rotation_id >= session.stages[stage_id].n_rotations) {
+): SubStageRoster {
+  if (checker.reachedEnd()) {
     return {
       rotations: StatusOr.Ok([]),
-      stage_id: stage_id,
-      deepest_rotation_reached: rotation_id,
-      relaxings_count: checker.relaxings_count,
+      checker: checker,
     };
   }
 
   checker.strictenConstraintsIfPossible();
-  const optimal_relaxings = checker.relaxings_count;
-  let deepest_failure: StageRoster = {
-    rotations: StatusOr.Error("Couldn't make further proposals."),
-    stage_id: stage_id,
-    deepest_rotation_reached: rotation_id,
-    relaxings_count: checker.relaxings_count,
+  const optimal_relaxings = checker.relaxingsCount();
+  const proposals = MakeRotationProposals(checker, deadline, rng);
+  let deepest_failure: SubStageRoster = {
+    rotations: StatusOr.Error(
+      "Couldn't build roster for this stage. Deepest rotation reached: " +
+        checker.deepestRotationReached() +
+        ". Relaxings attempted: " +
+        checker.relaxingsCount()
+    ),
+    checker: checker,
   };
-  let best_success: StageRoster | undefined = undefined;
+  let best_success: SubStageRoster | undefined = undefined;
   let successes = 0;
-
-  const proposals = MakeRotationProposals(session, stage_id, checker, deadline, rng);
   for (
     let proposal = proposals.next();
     !proposal.done &&
-    best_success?.relaxings_count !== optimal_relaxings &&
+    best_success?.checker.relaxingsCount() !== optimal_relaxings &&
     successes < MAX_SUBOPTIMAL_ROTATION_PROPOSAL_ALTERNATIVES_PER_NODE;
     proposal = proposals.next()
   ) {
-    const roster = ComputeStageRoster(
-      session,
-      stage_id,
-      rotation_id + 1,
-      proposal.value.downstream_checker,
-      deadline,
-      rng
-    );
-    if (roster.rotations.ok()) {
+    const subroster = ComputeStageRoster(proposal.value.downstream_checker, deadline, rng);
+    if (subroster.rotations.ok()) {
       ++successes;
-      if (!best_success || roster.relaxings_count < best_success!.relaxings_count) {
+      if (
+        !best_success ||
+        subroster.checker.relaxingsCount() < best_success!.checker.relaxingsCount()
+      ) {
         best_success = {
-          rotations: StatusOr.Ok([proposal.value.rotation].concat(roster.rotations.value())),
-          stage_id: roster.stage_id,
-          deepest_rotation_reached: roster.deepest_rotation_reached,
-          relaxings_count: roster.relaxings_count,
+          rotations: StatusOr.Ok([proposal.value.rotation].concat(subroster.rotations.value())),
+          checker: subroster.checker,
         };
       }
     } else {
+      const deepest_so_far = deepest_failure.checker.deepestRotationReached();
+      const subroster_depth = subroster.checker.deepestRotationReached();
+      const relax_count_so_far = deepest_failure.checker.relaxingsCount();
+      const subroster_relax_count = subroster.checker.relaxingsCount();
       if (
-        !deepest_failure ||
-        roster.deepest_rotation_reached > deepest_failure.deepest_rotation_reached ||
-        (roster.deepest_rotation_reached == deepest_failure.deepest_rotation_reached &&
-          roster.relaxings_count > deepest_failure.relaxings_count)
+        subroster_depth > deepest_so_far ||
+        (subroster_depth == deepest_so_far && subroster_relax_count > relax_count_so_far)
       ) {
-        deepest_failure = roster;
+        deepest_failure = subroster;
       }
     }
   }
@@ -173,14 +174,17 @@ function ComputeStageRoster(
   return (best_success || deepest_failure)!;
 }
 
+interface RotationProposal {
+  rotation: Rotation;
+  downstream_checker: ConstraintsChecker;
+}
+
 function* MakeRotationProposals(
-  session: Session,
-  stage_id: number,
   checker: ConstraintsChecker,
   deadline: number,
   rng: Rng
-) {
-  const stage = session.stages[stage_id];
+): Generator<RotationProposal> {
+  const stage = checker.stage();
   const proposals_count = 0;
   for (
     let i = 0, can_relax = true;
@@ -188,9 +192,7 @@ function* MakeRotationProposals(
     ++i
   ) {
     // Generate rotation proposal.
-    const active_players = session.players
-      .slice(session.players.length - stage.n_players)
-      .sort(() => 0.5 - rng());
+    const active_players = [...checker.players()].sort(() => 0.5 - rng());
     const resting_players = Array(stage.n_resting_players_per_rotation)
       .fill(undefined)
       .map((_) => PopRandomElement(active_players, rng).name);
@@ -254,12 +256,13 @@ function* MakeRotationProposals(
 }
 
 export class ConstraintsChecker {
-  constructor(stage: Stage) {
-    this.stage = stage;
-    this.rotation_id = 0;
-    this.relaxings_count = 0;
+  constructor(stage: Readonly<Stage>, players: ReadonlyArray<Player>) {
+    this.stage_ = stage;
+    this.players_ = players;
+    this.rotation_id_ = 0;
+    this.relaxings_count_ = 0;
     const n_player_pairs = NChooseK(stage.n_players, 2);
-    this.permutations = {
+    this.possible_permutations_ = {
       [HappeningType.RESTING]: stage.n_players,
       [HappeningType.PLAYING_SINGLE]: stage.n_players,
       [HappeningType.PLAYING_SINGLE_AGAINST]: n_player_pairs,
@@ -267,7 +270,7 @@ export class ConstraintsChecker {
       [HappeningType.PLAYING_DOUBLE_AGAINST]: n_player_pairs,
       [HappeningType.PLAYING_DOUBLE_WITH]: n_player_pairs,
     };
-    this.happenings = {
+    this.happenings_ = {
       [HappeningType.RESTING]: {},
       [HappeningType.PLAYING_SINGLE]: {},
       [HappeningType.PLAYING_SINGLE_AGAINST]: {},
@@ -275,91 +278,163 @@ export class ConstraintsChecker {
       [HappeningType.PLAYING_DOUBLE_AGAINST]: {},
       [HappeningType.PLAYING_DOUBLE_WITH]: {},
     };
-    this.insertion_rotations = {};
-    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
+    this.insertion_rotations_ = {};
+    this.constraints_ = ConstraintsForRelaxingsCount(this.relaxings_count_, this.stage_);
   }
 
   copy() {
-    const out = new ConstraintsChecker(this.stage);
-    out.rotation_id = this.rotation_id;
-    out.relaxings_count = this.relaxings_count;
-    out.happenings = this.recordCopy(this.happenings);
-    out.insertion_rotations = this.recordCopy(this.insertion_rotations);
-    out.constraints = this.constraints; // constraints are immutable, no deep copy required.
+    const out = new ConstraintsChecker(this.stage_, this.players_);
+    out.rotation_id_ = this.rotation_id_;
+    out.relaxings_count_ = this.relaxings_count_;
+    out.happenings_ = this.recordCopy(this.happenings_);
+    out.insertion_rotations_ = this.recordCopy(this.insertion_rotations_);
+    out.constraints_ = this.constraints_; // constraints are immutable, no deep copy required.
     return out;
   }
 
   add(happening: Happening) {
     const serialized = JSON.stringify(happening);
     // Add happening.
-    if (!this.happenings[happening.type][serialized]) {
-      this.happenings[happening.type][serialized] = 0;
+    if (!this.happenings_[happening.type][serialized]) {
+      this.happenings_[happening.type][serialized] = 0;
     }
-    ++this.happenings[happening.type][serialized];
+    ++this.happenings_[happening.type][serialized];
     // Add insertion rotation.
-    if (!this.insertion_rotations[serialized]) {
-      this.insertion_rotations[serialized] = [];
+    if (!this.insertion_rotations_[serialized]) {
+      this.insertion_rotations_[serialized] = [];
     }
-    this.insertion_rotations[serialized].push(this.rotation_id);
+    this.insertion_rotations_[serialized].push(this.rotation_id_);
   }
 
   validateAndAdvanceToNextRotation() {
     // Validate cooldowns.
-    for (const [happening, insertions] of Object.entries(this.insertion_rotations)) {
+    for (const [happening, insertions] of Object.entries(this.insertion_rotations_)) {
       if (insertions.length < 2) {
         continue;
       }
       const type = (JSON.parse(happening) as Happening).type;
       const observed_cooldown =
         insertions[insertions.length - 1] - insertions[insertions.length - 2] - 1;
-      const min_cooldown = this.constraints.min_cooldowns[type];
+      const min_cooldown = this.constraints_.min_cooldowns[type];
       if (observed_cooldown < min_cooldown) {
         return false;
       }
     }
     // Validate spreads.
-    for (const [type, record] of Object.entries(this.happenings)) {
+    for (const [type, record] of Object.entries(this.happenings_)) {
       const casted_type = type as unknown as HappeningType;
       const min =
-        Object.keys(record).length < this.permutations[casted_type]
+        Object.keys(record).length < this.possible_permutations_[casted_type]
           ? 0
           : Math.min(...Object.values(record));
       const max = Math.max(...Object.values(record));
       const observed_spread = max - min;
-      const max_spread = this.constraints.max_spreads[casted_type];
+      const max_spread = this.constraints_.max_spreads[casted_type];
       if (observed_spread > max_spread) {
         return false;
       }
     }
-    ++this.rotation_id;
+    ++this.rotation_id_;
     return true;
   }
 
   relaxConstraintsIfPossible() {
-    if (this.relaxings_count == MAX_CONSTRAINT_RELAXINGS) {
+    if (this.relaxings_count_ == MAX_CONSTRAINT_RELAXINGS) {
       return false;
     }
-    ++this.relaxings_count;
-    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
+    ++this.relaxings_count_;
+    this.constraints_ = ConstraintsForRelaxingsCount(this.relaxings_count_, this.stage_);
     return true;
   }
 
   strictenConstraintsIfPossible() {
-    if (this.relaxings_count == 0) {
+    if (this.relaxings_count_ == 0) {
       return false;
     }
-    --this.relaxings_count;
-    this.constraints = ConstraintsForRelaxingsCount(this.relaxings_count, this.stage);
+    --this.relaxings_count_;
+    this.constraints_ = ConstraintsForRelaxingsCount(this.relaxings_count_, this.stage_);
+  }
+
+  stage() {
+    return this.stage_;
+  }
+
+  players() {
+    return this.players_;
+  }
+
+  deepestRotationReached() {
+    return this.rotation_id_;
+  }
+
+  reachedEnd() {
+    return this.rotation_id_ >= this.stage_.n_rotations;
+  }
+
+  relaxingsCount() {
+    return this.relaxingsCount;
+  }
+
+  happenings(): Readonly<{ [key in HappeningType]: Record<string, number> }> {
+    return this.happenings_;
+  }
+
+  possiblePermutations() {
+    return this.possible_permutations_;
   }
 
   protected recordCopy<K extends string | number | symbol, V>(record: Record<K, V>) {
     return JSON.parse(JSON.stringify(record));
   }
-  protected stage: Stage;
-  protected rotation_id: number;
-  public relaxings_count: number;
-  protected permutations: { [key in HappeningType]: number };
-  protected happenings: { [key in HappeningType]: Record<string, number> };
-  protected insertion_rotations: Record<string, number[]>;
-  public constraints: Constraints;
+  protected stage_: Readonly<Stage>;
+  protected players_: ReadonlyArray<Player>;
+  protected rotation_id_: number;
+  protected relaxings_count_: number;
+  protected possible_permutations_: Readonly<{ [key in HappeningType]: number }>;
+  protected happenings_: { [key in HappeningType]: Record<string, number> };
+  protected insertion_rotations_: Record<string, number[]>;
+  protected constraints_: Constraints;
+}
+
+function AddStatsOrErrorToRoster(roster: SubStageRoster): StageRoster {
+  if (!roster.rotations.ok()) {
+    return {
+      stage_id: roster.checker.stage().id,
+      error: roster.rotations.error(),
+    };
+  }
+  const happenings = roster.checker.happenings();
+  const possible_permutations = roster.checker.possiblePermutations();
+  const spreads = Object.keys(happenings).reduce(function (result: any, key: string) {
+    const casted_key = key as HappeningType;
+    const happening_counts = Object.values(happenings[casted_key]);
+    const distribution = Array(possible_permutations[casted_key] - happening_counts.length)
+      .fill(0)
+      .concat(happening_counts);
+    result[key] = StatsFromDistribution(distribution);
+    return result;
+  }, {});
+  return {
+    stage_id: roster.checker.stage().id,
+    rotations: roster.rotations.value(),
+    spreads: spreads,
+  };
+}
+
+function StatsFromDistribution(distribution: number[]) {
+  const sorted = [...distribution].sort((a, b) => a - b);
+  const total = sorted.length;
+  const average = sorted.reduce((acc, val) => acc + val, 0) / total;
+  return {
+    lowest: sorted[0],
+    p25: Round(Quantile(sorted, 0.25), 1),
+    p50: Round(Quantile(sorted, 0.5), 1),
+    average: Round(average, 1),
+    p75: Round(Quantile(sorted, 0.75), 1),
+    highest: sorted[total - 1],
+    stddev: Round(
+      Math.sqrt(sorted.reduce((acc, val) => acc + Math.pow(val - average, 2), 0) / total),
+      1
+    ),
+  };
 }
