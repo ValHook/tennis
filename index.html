@@ -335,32 +335,28 @@
 
               <div class="col d-flex flex-column gap-2">
                 <h3 class="fw-semibold mb-0 text-body-emphasis">Want to use a spreadsheet?</h4>
-                <p class="text-body-secondary">Stay tuned for an option to export to a spreadsheet!</p>
-              </div>
-
-              <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Export to Google Sheets</h4>
-                <div class="d-flex gap-2 pt-2">
+                <p class="text-body-secondary mb-0">Sign in through your Google account to export to a Google Spreadsheet.</p>
+                <div>
                   <em id="gapi_busy">Loading…</em>
-                  <button class="btn btn-outline-secondary d-none align-items-center ps-2" id="gapi_auth" onclick="handleAuthClick()">
+                  <button class="btn btn-primary d-none align-items-center ps-2" id="gapi_auth" onclick="handleAuthClick()">
                     <img class="me-2" src="img/google.svg" width="20" height="20" />
                     Sign in with Google
                   </button>
-                  <button class="btn btn-outline-secondary d-none align-items-center d-none" id="gapi_export" onclick="handleSpreadsheetExport()">Export</button>
-                  <button class="btn btn-outline-secondary d-none align-items-center d-none" id="gapi_signout" onclick="handleSignoutClick()">Sign Out</button>
+                  <button class="btn btn-primary d-none align-items-center d-none me-1" id="gapi_export" onclick="handleSpreadsheetExport()">Export</button>
+                  <button class="btn btn-primary d-none align-items-center d-none" id="gapi_signout" onclick="handleSignoutClick()">Sign Out</button>
                 </div>
               </div>
 
               <div class="col d-flex flex-column gap-2">
                 <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h4>
-                <p class="text-body-secondary">
-                  Copy the URL or bookmark this page to get back to this exact tennis roster.
+                <p class="text-body-secondary mb-0">Copy the URL or bookmark this page to get back to this exact tennis roster.</p>
+                <div>
                   <button class="btn btn-primary d-block mt-2" id="copy-url"
                      data-bs-container="body" data-bs-toggle="popover" tabindex="0"
                      data-bs-placement="top" data-bs-content="✅ Copied URL">
                       Copy link
                   </button>
-                </p>
+                </div>
               </div>
 
               <div class="col d-flex flex-column gap-2">
