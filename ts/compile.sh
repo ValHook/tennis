@@ -6,7 +6,7 @@ echo "Removing previously compiled files... "
 rm -rf generated/ || true
 
 echo "Linting typescript..."
-npx prettier --loglevel error --write . 
+npx prettier --log-level error --write . 
 
 echo "Compiling typescript ..."
 npx tsc

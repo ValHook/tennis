@@ -1,12 +1,13 @@
-import { MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA } from "./constants";
 import { StatusOr } from "./status";
 
-export interface Configuration {
-  match_duration_minutes: number;
+export interface Input {
+  match_duration: number;
+  courts: Court[];
+  players: Player[];
+  seed: number;
 }
 
 export interface Court {
-  id: number;
   availability_minutes: number;
 }
 
@@ -26,12 +27,15 @@ export interface Stage {
   n_single_courts: number;
   n_double_courts: number;
   n_resting_players_per_rotation: number;
+  n_active_players: number;
+  n_single_players: number;
+  n_double_players: number;
 }
 
 export interface Session {
-  configuration: Configuration;
   courts: Court[];
   players: Player[];
+  stages: Stage[];
 }
 
 export interface MatchSingle {
@@ -52,120 +56,67 @@ export interface Rotation {
   doubles: MatchDouble[];
 }
 
-export interface Fixtures {
-  rotations: Rotation[];
+export interface StageRoster {
+  stage_id: number;
+  rotations?: Rotation[];
+  spreads?: { [key in HappeningType]: Stats };
+  cooldowns?: { [key in HappeningType]: Stats };
+  error?: string;
 }
 
-export interface Roster {
-  fixtures: StatusOr<Fixtures>[];
+export interface Stats {
+  lowest: number;
+  p25: number;
+  p50: number;
+  average: number;
+  p75: number;
+  highest: number;
+  stddev: number;
+  count: number;
 }
 
 export interface Constraints {
-  resting_max: number;
-  single_max: number;
-  double_max: number;
-  pairwise_single_max: number;
-  pairwise_double_max: number;
-  resting_cooldown: number;
-  single_cooldown: number;
-  double_cooldown: number;
-  pairwise_single_cooldown: number;
-  pairwise_double_cooldown: number;
+  max_spreads: { [key in HappeningType]: number };
+  min_cooldowns: { [key in HappeningType]: number };
 }
 
-export type PairwiseKey = string;
-export interface ConstraintGauges {
-  resting_max: Map<string, number>;
-  single_max: Map<string, number>;
-  double_max: Map<string, number>;
-  pairwise_single_max: Map<PairwiseKey, number>;
-  pairwise_double_max: Map<PairwiseKey, number>;
-  resting_cooldown: Map<string, number>;
-  single_cooldown: Map<string, number>;
-  double_cooldown: Map<string, number>;
-  pairwise_single_cooldown: Map<PairwiseKey, number>;
-  pairwise_double_cooldown: Map<PairwiseKey, number>;
+export enum HappeningType {
+  RESTING = "RESTING",
+  PLAYING_SINGLE = "PLAYING_SINGLE",
+  PLAYING_SINGLE_AGAINST = "PLAYING_SINGLE_AGAINST",
+  PLAYING_DOUBLE = "PLAYING_DOUBLE",
+  PLAYING_DOUBLE_AGAINST = "PLAYING_DOUBLE_AGAINST",
+  PLAYING_DOUBLE_WITH = "PLAYING_DOUBLE_WITH",
 }
 
-export function PairwiseKeyFromNames(a: string, b: string): PairwiseKey {
-  return [a, b].sort().join(", ");
-}
-
-export function CopyGauges(gauges: ConstraintGauges): ConstraintGauges {
-  return {
-    resting_max: new Map(gauges.resting_max),
-    single_max: new Map(gauges.single_max),
-    double_max: new Map(gauges.double_max),
-    pairwise_single_max: new Map(gauges.pairwise_single_max),
-    pairwise_double_max: new Map(gauges.pairwise_double_max),
-    resting_cooldown: new Map(gauges.resting_cooldown),
-    single_cooldown: new Map(gauges.single_cooldown),
-    double_cooldown: new Map(gauges.double_cooldown),
-    pairwise_single_cooldown: new Map(gauges.pairwise_single_cooldown),
-    pairwise_double_cooldown: new Map(gauges.pairwise_double_cooldown),
-  };
-}
-
-export function ClockDownCooldowns(
-  gauges: ConstraintGauges,
-  constraints: Constraints
-) {
-  const cooldowns = [
-    gauges.resting_cooldown,
-    gauges.single_cooldown,
-    gauges.double_cooldown,
-    gauges.pairwise_single_cooldown,
-    gauges.pairwise_double_cooldown,
-  ];
-  cooldowns.forEach((cooldown) => {
-    cooldown.forEach((v, k) => {
-      cooldown.set(k, v - 1);
-    });
-  });
-}
-
-export function ValidateGauges(
-  gauges: ConstraintGauges,
-  constraints: Constraints
-) {
-  const all_gauges = [
-    gauges.resting_max,
-    gauges.single_max,
-    gauges.double_max,
-    gauges.pairwise_single_max,
-    gauges.pairwise_double_max,
-    gauges.resting_cooldown,
-    gauges.single_cooldown,
-    gauges.double_cooldown,
-    gauges.pairwise_single_cooldown,
-    gauges.pairwise_double_cooldown,
-  ];
-  const pairwise_gauges = [
-    gauges.pairwise_single_max,
-    gauges.pairwise_double_max,
-  ];
-  const all_constraints = [
-    constraints.resting_max,
-    constraints.single_max,
-    constraints.double_max,
-    constraints.pairwise_single_max,
-    constraints.pairwise_double_max,
-    constraints.resting_cooldown,
-    constraints.single_cooldown,
-    constraints.double_cooldown,
-    constraints.pairwise_single_cooldown,
-    constraints.pairwise_double_cooldown,
-  ];
-  const max_and_cooldowns_ok = all_gauges.every((gauge, i) =>
-    [...gauge.values()].every((value) => value <= all_constraints[i])
-  );
-  const diversity_ok = pairwise_gauges
-    .map((gauge) => [...gauge.values()])
-    .every((values) => {
-      return (
-        Math.max(...values) <=
-        Math.min(...values) + MAX_PER_MATCH_TYPE_PER_PLAYER_PAIR_OCCURENCE_DELTA
-      );
-    });
-  return max_and_cooldowns_ok && diversity_ok;
+export class Happening {
+  static Resting(player: string) {
+    return new Happening(player, null, HappeningType.RESTING);
+  }
+  static PlayingSingle(player: string) {
+    return new Happening(player, null, HappeningType.PLAYING_SINGLE);
+  }
+  static PlayingSingleAgainst(player_a: string, player_b: string) {
+    const players = [player_a, player_b].sort();
+    return new Happening(players[0], players[1], HappeningType.PLAYING_SINGLE_AGAINST);
+  }
+  static PlayingDouble(player: string) {
+    return new Happening(player, null, HappeningType.PLAYING_DOUBLE);
+  }
+  static PlayingDoubleAgainst(player_a: string, player_b: string) {
+    const players = [player_a, player_b].sort();
+    return new Happening(players[0], players[1], HappeningType.PLAYING_DOUBLE_AGAINST);
+  }
+  static PlayingDoubleWith(player_a: string, player_b: string) {
+    const players = [player_a, player_b].sort();
+    return new Happening(players[0], players[1], HappeningType.PLAYING_DOUBLE_WITH);
+  }
+  protected constructor(player_a: string, player_b: string | null, type: HappeningType) {
+    this.player_a = player_a;
+    this.player_b = player_b;
+    this.type = type;
+  }
+  public player_a: string;
+  public player_b: string | null;
+  public type: HappeningType;
 }
