@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
   <head>
-    <link rel="icon" type="image/x-icon" href="img/icon-simple.svg" />
+    <link rel="icon" type="image/x-icon" href="img/icon.svg" />
     <title>Tennis Roster Generator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
@@ -30,26 +30,6 @@
 
       <div class="b-example-divider"></div>
 
-      <div class="d-none" id="outputBox">
-        <div class="container px-4 py-5">
-          <div class="row">
-            <pre id="output"></pre>
-          </div>
-          <div class="col d-flex gap-2">
-            <button class="btn btn-primary d-inline-flex d-none" id="clipboard"
-               data-bs-container="body" data-bs-toggle="popover" tabindex="0" 
-               data-bs-placement="top" data-bs-content="✅ Copied to clipboard">
-                Copy
-            </button>
-            <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
-                Regenerate with same parameters
-            </button>
-          </div>
-        </div>
-
-        <div class="b-example-divider"></div>
-      </div>
-
       <div class="container px-4 pb-3">
         <div class="row g-4 g-lg-5 py-5">
 
@@ -59,7 +39,7 @@
             <form>
 
               <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="inputMatchDuration" placeholder="15">
+                <input type="text" class="form-control" id="inputMatchDuration" placeholder="15" value="15">
                 <label for="inputMatchDuration">Average match duration in minutes (e.g. 15)</label>
                 <div class="invalid-feedback">Please provide a number of minutes.</div>
               </div>
@@ -345,8 +325,6 @@
 
             </form>
 
-            <p>All set? Double check your inputs&mdash;currently the generator doesn't support editing rosters!</p>
-
             <button class="btn btn-primary btn-lg" id="generate">
                 Generate
             </button>
@@ -357,17 +335,26 @@
 
               <div class="col d-flex flex-column gap-2">
                 <h3 class="fw-semibold mb-0 text-body-emphasis">Want to use a spreadsheet?</h4>
-                <p class="text-body-secondary">Stay tuned for an option to generate from a spreadsheet!</p>
+                <p class="text-body-secondary">Stay tuned for an option to export to a spreadsheet!</p>
               </div>
 
               <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Reuse an existing roster?</h4>
-                <p class="text-body-secondary">Stay tuned for an option to use rosters as templates!</p>
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h4>
+                <p class="text-body-secondary">
+                  Copy the URL or bookmark this page to get back to this exact tennis roster.
+                  <button class="btn btn-primary d-block mt-2" id="copy-url"
+                     data-bs-container="body" data-bs-toggle="popover" tabindex="0"
+                     data-bs-placement="top" data-bs-content="✅ Copied URL">
+                      Copy link
+                  </button>
+                </p>
               </div>
 
               <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Example roster</h4>
-                <p class="text-body-secondary">Check out <a href="#" class="sample-roster">this sample roster</a>.</p>
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a roster variant?</h4>
+                <p class="text-body-secondary">
+                  Each new generation will generate a slightly different roster.
+                </p>
               </div>
 
             </div>
@@ -375,8 +362,27 @@
 
         </div>
       </div>
-
       <div class="b-example-divider"></div>
+
+      <div class="d-none" id="outputBox">
+        <div class="container px-4 py-5">
+          <div class="row">
+            <pre id="output"></pre>
+          </div>
+          <div class="col d-flex gap-2">
+            <button class="btn btn-primary d-inline-flex d-none" id="copy-json"
+               data-bs-container="body" data-bs-toggle="popover" tabindex="0"
+               data-bs-placement="top" data-bs-content="✅ Copied JSON">
+                Copy
+            </button>
+            <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
+                Regenerate variant
+            </button>
+          </div>
+        </div>
+
+        <div class="b-example-divider"></div>
+      </div>
 
       <div class="container">
         <footer class="py-3 my-4">
