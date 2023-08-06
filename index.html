@@ -338,12 +338,12 @@
                 <p class="text-body-secondary mb-0">Sign in through your Google account to export to a Google Spreadsheet.</p>
                 <div>
                   <em id="gapi_busy">Loading…</em>
-                  <button class="btn btn-primary d-none align-items-center ps-2" id="gapi_auth" onclick="handleAuthClick()">
+                  <button class="btn btn-primary d-none align-items-center ps-2" id="gapi_auth">
                     <img class="me-2" src="img/google.svg" width="20" height="20" />
                     Sign in with Google
                   </button>
-                  <button class="btn btn-primary d-none align-items-center d-none me-1" id="gapi_export" onclick="handleSpreadsheetExport()">Export</button>
-                  <button class="btn btn-primary d-none align-items-center d-none" id="gapi_signout" onclick="handleSignoutClick()">Sign Out</button>
+                  <button class="btn btn-primary d-none align-items-center d-none me-1" id="gapi_export">Export</button>
+                  <button class="btn btn-primary d-none align-items-center d-none" id="gapi_signout">Sign Out</button>
                 </div>
               </div>
 
@@ -351,7 +351,7 @@
                 <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h4>
                 <p class="text-body-secondary mb-0">Copy the URL or bookmark this page to get back to this exact tennis roster.</p>
                 <div>
-                  <button class="btn btn-primary d-block mt-2" id="copy-url"
+                  <button class="btn btn-primary d-block" id="copy-url"
                      data-bs-container="body" data-bs-toggle="popover" tabindex="0"
                      data-bs-placement="top" data-bs-content="✅ Copied URL">
                       Copy link
@@ -418,187 +418,8 @@
       });
     </script>
 
-    <script type="text/javascript">
-      // TODO(developer): Set to client ID and API key from the Developer Console
-      const CLIENT_ID = '519347000672-447857bbs5d55adnk4cqi41vqc74ehgr.apps.googleusercontent.com';
-      const API_KEY = 'AIzaSyBlL5bK9tZXQ9kDkHdBZpgqxuHs5xuFNuk';
-
-      // Discovery doc URL for APIs used by the quickstart
-      const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4';
-
-      // Authorization scopes required by the API; multiple scopes can be
-      // included, separated by spaces.
-      const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-
-      let tokenClient;
-      let gisLoaded = false;
-      let gisAccessToken = null;
-      let gapiInited = false;
-
-      document.querySelector("#gapi_auth")?.classList.add("d-none");
-      document.querySelector("#gapi_list")?.classList.add("d-none");
-      document.querySelector("#gapi_export")?.classList.add("d-none");
-      document.querySelector("#gapi_signout")?.classList.add("d-none");
-
-      /**
-       * Callback after api.js is loaded.
-       */
-      function onGapiLoaded() {
-        gapi.load('client', initializeGapiClient);
-      }
-
-      /**
-       * Callback after the API client is loaded. Loads the
-       * discovery doc to initialize the API.
-       */
-      async function initializeGapiClient() {
-        await gapi.client.init({
-          apiKey: API_KEY,
-          discoveryDocs: [DISCOVERY_DOC],
-        });
-
-        gapiInited = true;
-        maybeEnableButtons();
-      }
-
-      /**
-       * Callback after Google Identity Services are loaded.
-       */
-      function onGisLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          prompt: 'none',
-          callback: '', // defined later
-        });
-        gisLoaded = true;
-        maybeEnableButtons();
-      }
-
-      /**
-       * Enables user interaction after all libraries are loaded.
-       */
-      function maybeEnableButtons(gisAccessToken = null) {
-        if (gisLoaded && gapiInited) {
-          document.querySelector("#gapi_busy")?.classList.add("d-none");
-        } else {
-          document.querySelector("#gapi_busy")?.classList.remove("d-none");
-        }
-        if (gisLoaded && gapiInited && gisAccessToken === null) {
-          document.querySelector("#gapi_auth")?.classList.remove("d-none");
-        } else {
-          document.querySelector("#gapi_auth")?.classList.add("d-none");
-        }
-        if (gisLoaded && gapiInited && gisAccessToken !== null) {
-          document.querySelector("#gapi_signout")?.classList.remove("d-none");
-          document.querySelector("#gapi_list")?.classList.remove("d-none");
-          document.querySelector("#gapi_export")?.classList.remove("d-none");
-        } else {
-          document.querySelector("#gapi_signout")?.classList.add("d-none");
-          document.querySelector("#gapi_list")?.classList.add("d-none");
-          document.querySelector("#gapi_export")?.classList.add("d-none");
-        }
-      }
-
-      /**
-       *  Sign in the user upon button click.
-       */
-      function handleAuthClick() {
-        tokenClient.callback = async (resp) => {
-          if (resp.error !== undefined) {
-            throw (resp);
-          }
-
-          console.log(gapi.client);
-
-          const gisAccessToken = gapi.client.getToken();
-          console.log(`Trying to store session with access token ${gisAccessToken.access_token}`);
-
-          onAuth();
-        };
-
-        onAuth();
-      }
-
-      function onAuth() {
-        const gisAccessToken = gapi.client.getToken();
-        console.log(`Can we use access token ${gisAccessToken}?`);
-        if (gisAccessToken === null) {
-          // Prompt the user to select a Google Account and ask for consent to share their data
-          // when establishing a new session.
-          tokenClient.requestAccessToken({prompt: 'consent'});
-        } else {
-          // Skip display of account chooser and consent dialog for an existing session.
-          //tokenClient.requestAccessToken({prompt: ''});
-        }
-        maybeEnableButtons(gisAccessToken);
-      }
-
-      /**
-       *  Sign out the user upon button click.
-       */
-      function handleSignoutClick() {
-        const token = gapi.client.getToken();
-        if (token !== null) {
-          google.accounts.oauth2.revoke(token.access_token);
-          gapi.client.setToken('');
-          maybeEnableButtons();
-        }
-      }
-
-      function handleSpreadsheetExport(callback) {
-        document.querySelector("#gapi_export").innerText = 'Exporting…';
-        try {
-          const title = "Tennis Roster";
-          let spreadsheetBody = {
-            properties: {
-              title: title,
-            },
-            "sheets": [
-              {
-                "properties": {
-                  "title": "Tennis Roster"
-                },
-                "data": [
-                  {
-                    "rowData": [
-                      {
-                        "values": [
-                          {
-                            "userEnteredValue": {
-                              "stringValue": "Hello world"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          };
-          gapi.client.sheets.spreadsheets.create(spreadsheetBody).then((response) => {
-            if (callback) callback(response);
-            document.querySelector("#gapi_export").innerText = 'Export';
-            console.log('Spreadsheet ID: ' + response.result.spreadsheetId);
-            const url = `https://docs.google.com/spreadsheets/d/${response.result.spreadsheetId}`
-            //document.querySelector("#content").innerHTML = `<a href="${url}" target="_blank">Spreadsheet</a>`;
-            openInNewTab(url);
-          });
-        } catch (err) {
-          //document.querySelector("#content").innerText = err.message;
-          document.querySelector("#gapi_export").innerText = 'Export';
-          return;
-        }
-      }
-
-      function openInNewTab(url) {
-        window.open(url, '_blank').focus();
-      }
-
-    </script>
-    <script async defer src="https://apis.google.com/js/api.js" onload="onGapiLoaded()"></script>
-    <script async defer src="https://accounts.google.com/gsi/client" onload="onGisLoaded()"></script>
+    <script async defer src="https://apis.google.com/js/api.js"></script>
+    <script async defer src="https://accounts.google.com/gsi/client"></script>
 
   </body>
 </html>
