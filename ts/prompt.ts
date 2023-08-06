@@ -1,4 +1,8 @@
+// @ts-ignore
+import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
+
 export function Prompt(id: string, ask: string): string {
+  Reset(id);
   const input = document.querySelector<HTMLInputElement>("#" + id);
   const result = input ? input.value : (window.prompt(ask) || "").replace(/\s/g, "");
   if (!result.length) {
@@ -12,8 +16,9 @@ export function PromptInt(
   ask: string,
   min: number = Number.MIN_SAFE_INTEGER,
   max: number = Number.MAX_SAFE_INTEGER,
-  multiple_of: number | undefined = undefined
+  multiple_of: number | undefined = undefined,
 ): number {
+  Reset(id);
   const input = document.querySelector<HTMLInputElement>("#" + id);
   const result = input ? parseInt(input.value) : parseInt(window.prompt(ask) || "");
   if (isNaN(result)) {
@@ -28,6 +33,13 @@ export function PromptInt(
   return result;
 }
 
+export function Reset<T>(id: string) {
+  const input = document.querySelector<HTMLInputElement>("#" + id);
+  if (input) {
+    input.classList.remove("is-invalid");
+  }
+}
+
 export function Fail<T>(id: string, output: T) {
   const input = document.querySelector<HTMLInputElement>("#" + id);
   if (input) {
@@ -37,9 +49,16 @@ export function Fail<T>(id: string, output: T) {
       (<HTMLElement>feedback[0]).innerText = String(output);
     }
   } else {
-    Output(output);
+    Dialog("Error", output);
   }
   throw new Error(String(output));
+}
+
+export function Dialog<T>(title: string, message: T) {
+  document.querySelector<HTMLInputElement>("#modalTitle")!.innerHTML = title;
+  const text = typeof message === "string" ? message : JSON.stringify(message, undefined, 2);
+  document.querySelector<HTMLInputElement>("#modalText")!.innerHTML = text;
+  new bootstrap.Modal("#modal", {}).show();
 }
 
 export function Output<T>(output: T) {

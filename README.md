@@ -1,30 +1,47 @@
 # Tennis Roster Generator
 
-## Running the website
+## Running the generator
 
-To use it on GitHub, [visit the site here](https://valhook.github.io/tennis/).  
-To use it locally, you will need to serve it.  
-All the logic runs in the browser, there is no backend.  
-Therefore the easiest way is to serve the site is by executing:
+### Online
+
+The latest public version is [hosted on ValHook's GitHub](https://valhook.github.io/tennis/).  
+
+### Locally
+
+To use it locally, you will need to serve it. All the logic runs in the browser; there is no backend.  
+
+The easiest way is to serve the site is by executing the following from the project's root directory:
+
 ```
-python3 -m http.server (from the project's root directory)
+python3 -m http.server
 ```
-You can then visit the locally served website at [http://localhost:8000](http://localhost:8000).
 
-## Writing changes
+You can then visit your locally served website at [http://localhost:8000](http://localhost:8000).
 
-The only dependencies you need are Typescript and a linter.
+## Compiling
+
+### Dependencies
+
+For Google APIs, used for exporting Google Sheets, you will need to pull in the following dependencies through `npm`:
+
+```
+npm install --save bootstrap @types/bootstrap @types/gapi @types/gapi.auth2 @types/gapi.client.sheets-v4
+```
+
+For compiling, you will need Typescript and a linter. To install them through `npm`, execute:
+
 ```
 npm install -g typescript prettier
 ```
 
-Then write your changes in `ts/` and compile them by executing:
+### Writing changes
+
+Write your changes in `ts/` and compile them by executing:
+
 ```
 ./ts/compile.sh
 ```
 
-It doesn't matter which directory you execute the shell script from.  
-However, note that this script for Mac and Linux only.  
-Windows users may want to use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).  
+While doesn't matter which directory you execute the shell script from, note that this script for Mac and Linux only. Windows users may want to use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
   
 This regenerates the `ts/generated` directory which the `index.html` page is configured to load.

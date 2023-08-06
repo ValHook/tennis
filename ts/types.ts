@@ -1,4 +1,4 @@
-import { StatusOr } from "./status";
+import { StatusOr } from "./status.js";
 
 export interface Input {
   match_duration: number;
