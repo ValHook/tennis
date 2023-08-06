@@ -1,6 +1,7 @@
 import { SessionFromInput, ComputeRosters } from "./algorithm.js";
 import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
+import { Initialize, SignIn, SignOut, Export } from "./gapi.js";
 function InputFromDOM() {
     const input = {
         match_duration: 0,
@@ -156,6 +157,18 @@ function OnDOMReady() {
     document.querySelectorAll("input[type=text]").forEach((element) => {
         element.addEventListener("input", (_) => element.classList.remove("is-invalid"));
     });
+    Initialize();
+    document.querySelector("#gapi_auth")?.addEventListener("click", (_) => {
+        SignIn();
+    });
+    document.querySelector("#gapi_export")?.addEventListener("click", (_) => {
+        Export(window.rosters, (url) => {
+            openInNewTab(url);
+        });
+    });
+    document.querySelector("#gapi_signout")?.addEventListener("click", (_) => {
+        SignOut();
+    });
 }
 function OnHashChange() {
     if (!window.location.hash) {
@@ -165,6 +178,9 @@ function OnHashChange() {
     window.input = InputFromHash(window.location.hash.substring(1));
     DOMFromInput(window.input);
     Generate();
+}
+function openInNewTab(url) {
+    window.open(url, "_blank")?.focus();
 }
 window.addEventListener("DOMContentLoaded", (event) => {
     OnDOMReady();

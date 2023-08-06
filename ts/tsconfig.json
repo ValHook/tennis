@@ -8,6 +8,7 @@
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "nodenext",
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["gapi", "gapi.auth2", "google.accounts", "gapi.client.sheets"]
   }
 }
