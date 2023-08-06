@@ -34,7 +34,7 @@ export function SessionFromInput(input: Input): Session {
 
   const players = [...input.players];
   const allowed_durations = new Set(
-    courts.map((c) => c.availability_minutes).concat(players.map((p) => p.availability_minutes))
+    courts.map((c) => c.availability_minutes).concat(players.map((p) => p.availability_minutes)),
   );
   const n_players = input.players.length;
   players.sort((a, b) => a.availability_minutes - b.availability_minutes);
@@ -115,7 +115,7 @@ export interface SubStageRoster {
 function ComputeStageRoster(
   checker: ConstraintsChecker,
   deadline: number,
-  rng: Rng
+  rng: Rng,
 ): SubStageRoster {
   if (checker.reachedEnd()) {
     return {
@@ -131,7 +131,7 @@ function ComputeStageRoster(
       "Couldn't build roster for this stage. Deepest rotation reached: " +
         checker.deepestRotationReached() +
         ". Relaxings attempted: " +
-        checker.relaxingsCount()
+        checker.relaxingsCount(),
     ),
     checker: checker,
   };
@@ -181,7 +181,7 @@ interface RotationProposal {
 function* MakeRotationProposals(
   checker: ConstraintsChecker,
   deadline: number,
-  rng: Rng
+  rng: Rng,
 ): Generator<RotationProposal> {
   const stage = checker.stage();
   const proposals_count = 0;
@@ -467,7 +467,7 @@ function StatsFromDistribution(distribution: number[]): StatusOr<Stats> {
     highest: sorted[total - 1],
     stddev: Round(
       Math.sqrt(sorted.reduce((acc, val) => acc + Math.pow(val - average, 2), 0) / total),
-      1
+      1,
     ),
     count: distribution.length,
   });

@@ -22,7 +22,7 @@ function InputFromDOM(): Input {
     "inputMatchDuration",
     "Average match duration in minutes?",
     1,
-    Infinity
+    Infinity,
   );
   const n_courts = PromptInt("inputCourtCount", "How many courts?", 1);
   for (let i = 0; i < n_courts; ++i) {
@@ -32,7 +32,7 @@ function InputFromDOM(): Input {
         "Court #" + (i + 1) + " availability in minutes?",
         input.match_duration,
         Infinity,
-        input.match_duration
+        input.match_duration,
       ),
     });
   }
@@ -45,7 +45,7 @@ function InputFromDOM(): Input {
   const n_players = PromptInt(
     "inputPlayerCount",
     "How many players?",
-    n_courts * NUM_PLAYERS_SINGLE
+    n_courts * NUM_PLAYERS_SINGLE,
   );
   const min_minutes = 0;
   const max_minutes = sorted_court_availabilities[n_courts - 1];
@@ -58,7 +58,7 @@ function InputFromDOM(): Input {
         "Player #" + (i + 1) + " availability in minutes?",
         min_minutes,
         max_minutes,
-        input.match_duration
+        input.match_duration,
       ),
     };
     if (player_names.has(player.name)) {
@@ -78,12 +78,12 @@ function InputFromDOM(): Input {
     const remaining_players = n_players - i - 1;
     const court_underutilization = court_utilizations.reduce(
       (total, utilization) => total + (NUM_PLAYERS_SINGLE - utilization),
-      0
+      0,
     );
     if (remaining_players < court_underutilization) {
       Fail(
         "inputPlayerMinutes" + i,
-        "Not enough remaining players to correctly utilize all the courts"
+        "Not enough remaining players to correctly utilize all the courts",
       );
     }
     input.players.push(player);
@@ -93,27 +93,27 @@ function InputFromDOM(): Input {
 
 function DOMFromInput(input: Input) {
   document.querySelector<HTMLInputElement>("#inputMatchDuration")!.value = String(
-    input.match_duration
+    input.match_duration,
   );
   ChangeCourtCount(input.courts.length);
   document.querySelector<HTMLInputElement>("#inputCourtCount")!.value = String(input.courts.length);
   ChangePlayerCount(input.players.length);
   document.querySelector<HTMLInputElement>("#inputPlayerCount")!.value = String(
-    input.players.length
+    input.players.length,
   );
   for (let i = 0; i < input.courts.length; ++i) {
     document.querySelector<HTMLInputElement>("#inputCourtDuration" + i)!.value = String(
-      input.courts[i].availability_minutes
+      input.courts[i].availability_minutes,
     );
   }
   for (let i = 0; i < input.players.length; ++i) {
     document.querySelector<HTMLInputElement>("#inputPlayerName" + i)!.value = String(
-      input.players[i].name
+      input.players[i].name,
     );
   }
   for (let i = 0; i < input.players.length; ++i) {
     document.querySelector<HTMLInputElement>("#inputPlayerMinutes" + i)!.value = String(
-      input.players[i].availability_minutes
+      input.players[i].availability_minutes,
     );
   }
 }
