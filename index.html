@@ -36,370 +36,396 @@
       </header>
     </div>
 
-    <div class="b-example-divider"></div>
+    <!-- Tabs -->
+    <div class="b-shadow nav-tabs" id="navbar">
+      <ul class="container px-4 pt-1 nav nav-tabs nb">
+        <li class="nav-item">
+          <button class="nav-link active" id="tab-generate" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab" aria-controls="generate" aria-selected="false">Generate</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="tab-json" data-bs-toggle="tab" data-bs-target="#json" type="button" role="tab" aria-controls="json" aria-selected="false">JSON</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link disabled" id="tab-table" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false" aria-disabled="true">Table</button>
+        </li>
+      </ul>
+    </div>
 
-    <div class="container px-4 pb-3">
-      <div class="row g-4 g-lg-5 py-5">
+    <!-- Tab content -->
+    <div class="container px-4 pb-3 tab-content">
 
-        <div class="col col-lg-8 d-flex flex-column gap-2">
-          <h2 class="text-body-emphasis">Generate a tennis roster</h2>
-          
-          <form>
+      <!-- Tab 'generate' -->
+      <div class="tab-pane active" id="generate" role="tabpanel" aria-labelledby="tab-generate">
 
-            <div class="form-floating mb-3">
-              <input type="text" class="form-control" id="inputMatchDuration" placeholder="15" value="15">
-              <label for="inputMatchDuration">Average match duration in minutes (e.g. 15)</label>
-              <div class="invalid-feedback">Please provide a number of minutes.</div>
-            </div>
+        <div class="row g-4 g-lg-5 py-5">
 
-            <div class="mb-3">
-              <label for="inputCourtCount" class="form-label">Number of courts: <span class="b" id="courtCount">1</span></label>
-              <input type="range" class="form-range" min="1" max="4" step="1" value="1" id="inputCourtCount">
-            </div>
+          <div class="col col-lg-8 d-flex flex-column gap-2">
+            <h2 class="text-body-emphasis">Generate a tennis roster</h2>
+            
+            <form>
 
-            <div class="form-label">Court availability in minutes:</div>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="inputMatchDuration" placeholder="15" value="15">
+                <label for="inputMatchDuration">Average match duration in minutes (e.g. 15)</label>
+                <div class="invalid-feedback">Please provide a number of minutes.</div>
+              </div>
 
-            <div class="row g-2">
+              <div class="mb-3">
+                <label for="inputCourtCount" class="form-label">Number of courts: <span class="b" id="courtCount">1</span></label>
+                <input type="range" class="form-range" min="1" max="4" step="1" value="1" id="inputCourtCount">
+              </div>
 
-              <div class="col-md-3" id="court0">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="inputCourtDuration0" placeholder="60">
-                  <label for="inputCourtDuration0">Court #1</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+              <div class="form-label">Court availability in minutes:</div>
+
+              <div class="row g-2">
+
+                <div class="col-md-3" id="court0">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="inputCourtDuration0" placeholder="60">
+                    <label for="inputCourtDuration0">Court #1</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-3" id="court1">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="inputCourtDuration1" placeholder="60">
-                  <label for="inputCourtDuration1">Court #2</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-3" id="court1">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="inputCourtDuration1" placeholder="60">
+                    <label for="inputCourtDuration1">Court #2</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-3" id="court2">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="inputCourtDuration2" placeholder="60">
-                  <label for="inputCourtDuration2">Court #3</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-3" id="court2">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="inputCourtDuration2" placeholder="60">
+                    <label for="inputCourtDuration2">Court #3</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-3" id="court3">
-                <div class="form-floating mb-3">
-                  <input type="text" class="form-control" id="inputCourtDuration3" placeholder="60">
-                  <label for="inputCourtDuration3">Court #4</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-3" id="court3">
+                  <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="inputCourtDuration3" placeholder="60">
+                    <label for="inputCourtDuration3">Court #4</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
 
-            </div>
+              <div class="mb-3">
+                <label for="inputPlayerCount" class="form-label">Number of players: <span class="b" id="playerCount">2</span></label>
+                <input type="range" class="form-range" min="2" max="12" step="1" value="2" id="inputPlayerCount">
+              </div>
 
-            <div class="mb-3">
-              <label for="inputPlayerCount" class="form-label">Number of players: <span class="b" id="playerCount">2</span></label>
-              <input type="range" class="form-range" min="2" max="12" step="1" value="2" id="inputPlayerCount">
-            </div>
+              <div class="form-label">Players and their availability in minutes:</div>
 
-            <div class="form-label">Players and their availability in minutes:</div>
+              <div class="row g-2" id="player0">
 
-            <div class="row g-2" id="player0">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName0" placeholder="60">
-                  <label for="inputPlayerName0">Player #1 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName0" placeholder="60">
+                    <label for="inputPlayerName0">Player #1 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes0" placeholder="60">
-                  <label for="inputPlayerMinutes0">Player #1 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes0" placeholder="60">
+                    <label for="inputPlayerMinutes0">Player #1 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player1">
 
-            </div>
-            <div class="row g-2" id="player1">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName1" placeholder="60">
-                  <label for="inputPlayerName1">Player #2 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName1" placeholder="60">
+                    <label for="inputPlayerName1">Player #2 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes1" placeholder="60">
-                  <label for="inputPlayerMinutes1">Player #2 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes1" placeholder="60">
+                    <label for="inputPlayerMinutes1">Player #2 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player2">
 
-            </div>
-            <div class="row g-2" id="player2">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName2" placeholder="60">
-                  <label for="inputPlayerName2">Player #3 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName2" placeholder="60">
+                    <label for="inputPlayerName2">Player #3 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes2" placeholder="60">
-                  <label for="inputPlayerMinutes2">Player #3 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes2" placeholder="60">
+                    <label for="inputPlayerMinutes2">Player #3 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player3">
 
-            </div>
-            <div class="row g-2" id="player3">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName3" placeholder="60">
-                  <label for="inputPlayerName3">Player #4 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName3" placeholder="60">
+                    <label for="inputPlayerName3">Player #4 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes3" placeholder="60">
-                  <label for="inputPlayerMinutes3">Player #4 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes3" placeholder="60">
+                    <label for="inputPlayerMinutes3">Player #4 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player4">
 
-            </div>
-            <div class="row g-2" id="player4">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName4" placeholder="60">
-                  <label for="inputPlayerName4">Player #5 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName4" placeholder="60">
+                    <label for="inputPlayerName4">Player #5 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes4" placeholder="60">
-                  <label for="inputPlayerMinutes4">Player #5 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes4" placeholder="60">
+                    <label for="inputPlayerMinutes4">Player #5 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player5">
 
-            </div>
-            <div class="row g-2" id="player5">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName5" placeholder="60">
-                  <label for="inputPlayerName5">Player #6 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName5" placeholder="60">
+                    <label for="inputPlayerName5">Player #6 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes5" placeholder="60">
-                  <label for="inputPlayerMinutes5">Player #6 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes5" placeholder="60">
+                    <label for="inputPlayerMinutes5">Player #6 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player6">
 
-            </div>
-            <div class="row g-2" id="player6">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName6" placeholder="60">
-                  <label for="inputPlayerName6">Player #7 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName6" placeholder="60">
+                    <label for="inputPlayerName6">Player #7 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes6" placeholder="60">
-                  <label for="inputPlayerMinutes6">Player #7 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes6" placeholder="60">
+                    <label for="inputPlayerMinutes6">Player #7 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player7">
 
-            </div>
-            <div class="row g-2" id="player7">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName7" placeholder="60">
-                  <label for="inputPlayerName7">Player #8 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName7" placeholder="60">
+                    <label for="inputPlayerName7">Player #8 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes7" placeholder="60">
-                  <label for="inputPlayerMinutes7">Player #8 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes7" placeholder="60">
+                    <label for="inputPlayerMinutes7">Player #8 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player8">
 
-            </div>
-            <div class="row g-2" id="player8">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName8" placeholder="60">
-                  <label for="inputPlayerName8">Player #9 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName8" placeholder="60">
+                    <label for="inputPlayerName8">Player #9 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes8" placeholder="60">
-                  <label for="inputPlayerMinutes8">Player #9 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes8" placeholder="60">
+                    <label for="inputPlayerMinutes8">Player #9 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player9">
 
-            </div>
-            <div class="row g-2" id="player9">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName9" placeholder="60">
-                  <label for="inputPlayerName9">Player #10 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName9" placeholder="60">
+                    <label for="inputPlayerName9">Player #10 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes9" placeholder="60">
-                  <label for="inputPlayerMinutes9">Player #10 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes9" placeholder="60">
+                    <label for="inputPlayerMinutes9">Player #10 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player10">
 
-            </div>
-            <div class="row g-2" id="player10">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName10" placeholder="60">
-                  <label for="inputPlayerName10">Player #11 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName10" placeholder="60">
+                    <label for="inputPlayerName10">Player #11 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes10" placeholder="60">
-                  <label for="inputPlayerMinutes10">Player #11 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes10" placeholder="60">
+                    <label for="inputPlayerMinutes10">Player #11 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
+              <div class="row g-2" id="player11">
 
-            </div>
-            <div class="row g-2" id="player11">
-
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerName11" placeholder="60">
-                  <label for="inputPlayerName11">Player #12 name</label>
-                  <div class="invalid-feedback">Please provide a distinct name.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerName11" placeholder="60">
+                    <label for="inputPlayerName11">Player #12 name</label>
+                    <div class="invalid-feedback">Please provide a distinct name.</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-md-6">
-                <div class="form-floating mb-2">
-                  <input type="text" class="form-control" id="inputPlayerMinutes11" placeholder="60">
-                  <label for="inputPlayerMinutes11">Player #12 availability</label>
-                  <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                <div class="col-md-6">
+                  <div class="form-floating mb-2">
+                    <input type="text" class="form-control" id="inputPlayerMinutes11" placeholder="60">
+                    <label for="inputPlayerMinutes11">Player #12 availability</label>
+                    <div class="invalid-feedback">Please provide a valid number of minutes.</div>
+                  </div>
                 </div>
+
               </div>
 
-            </div>
+            </form>
 
-          </form>
-
-          <button class="btn btn-primary btn-lg" id="generate">
-              Generate
-          </button>
-        </div>
-
-        <div class="col-lg-4">
-          <div class="row row-cols-sm-1 g-4">
-
-            <div class="col d-flex flex-column gap-2">
-              <h3 class="fw-semibold mb-0 text-body-emphasis">Want a sheet?</h4>
-              <p class="text-body-secondary mb-0">Sign in through your Google account to export to a Google Spreadsheet.</p>
-              <div>
-                <em id="gapi_busy">Loading…</em>
-                <button class="btn btn-primary d-none align-items-center ps-2" id="gapi_auth">
-                  <img class="me-2" src="img/google.svg" width="20" height="20" />
-                  Sign in with Google
-                </button>
-                <button class="btn btn-primary d-none align-items-center d-none me-1" id="gapi_export">Export</button>
-                <button class="btn btn-primary d-none align-items-center d-none" id="gapi_signout">Sign Out</button>
-              </div>
-            </div>
-
-            <div class="col d-flex flex-column gap-2">
-              <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h4>
-              <p class="text-body-secondary mb-0">Copy the URL or bookmark this page to get back to this exact tennis roster.</p>
-              <div>
-                <button class="btn btn-primary d-block" id="copy-url"
-                   data-bs-container="body" data-bs-toggle="popover" tabindex="0"
-                   data-bs-placement="top" data-bs-content="✅ Copied URL">
-                    Copy link
-                </button>
-              </div>
-            </div>
-
-            <div class="col d-flex flex-column gap-2">
-              <h3 class="fw-semibold mb-0 text-body-emphasis">Want a roster variant?</h4>
-              <p class="text-body-secondary">
-                Each generated roster will be slightly different.
-              </p>
-            </div>
-
+            <button class="btn btn-primary btn-lg" id="generate">
+                Generate
+            </button>
           </div>
+
+          <div class="col-lg-4">
+            <div class="row row-cols-sm-1 g-4">
+
+              <div class="col d-flex flex-column gap-2">
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a sheet?</h3>
+                <p class="text-body-secondary mb-0">Sign in through your Google account to export to a Google Spreadsheet.</p>
+                <div>
+                  <em id="gapi_busy">Loading…</em>
+                  <button class="btn btn-primary d-none align-items-center ps-2" id="gapi_auth">
+                    <img class="me-2" src="img/google.svg" width="20" height="20" />
+                    Sign in with Google
+                  </button>
+                  <button class="btn btn-primary d-none align-items-center d-none me-1" id="gapi_export">Export</button>
+                  <button class="btn btn-primary d-none align-items-center d-none" id="gapi_signout">Sign Out</button>
+                </div>
+              </div>
+
+              <div class="col d-flex flex-column gap-2">
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h3>
+                <p class="text-body-secondary mb-0">Copy the URL or bookmark this page to get back to this exact tennis roster.</p>
+                <div>
+                  <button class="btn btn-primary d-block" id="copy-url"
+                     data-bs-container="body" data-bs-toggle="popover" tabindex="0"
+                     data-bs-placement="top" data-bs-content="✅ Copied URL">
+                      Copy link
+                  </button>
+                </div>
+              </div>
+
+              <div class="col d-flex flex-column gap-2">
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a roster variant?</h3>
+                <p class="text-body-secondary">
+                  Each generated roster will be slightly different.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
         </div>
 
       </div>
-    </div>
-    <div class="b-example-divider"></div>
 
-    <div class="d-none" id="outputBox">
-      <div class="container px-4 py-5">
-        <div class="row">
-          <pre id="output"></pre>
+      <div class="tab-pane" id="json" role="tabpanel" aria-labelledby="tab-json">
+
+        <div class="d-none" id="outputBox">
+          <div class="container px-4 py-5">
+            <div class="row">
+              <pre id="output"></pre>
+            </div>
+            <div class="col d-flex gap-2">
+              <button class="btn btn-primary d-inline-flex d-none" id="copy-json"
+                 data-bs-container="body" data-bs-toggle="popover" tabindex="0"
+                 data-bs-placement="top" data-bs-content="✅ Copied JSON">
+                  Copy
+              </button>
+              <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
+                  Regenerate variant
+              </button>
+            </div>
+          </div>
+
         </div>
-        <div class="col d-flex gap-2">
-          <button class="btn btn-primary d-inline-flex d-none" id="copy-json"
-             data-bs-container="body" data-bs-toggle="popover" tabindex="0"
-             data-bs-placement="top" data-bs-content="✅ Copied JSON">
-              Copy
-          </button>
-          <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
-              Regenerate variant
-          </button>
-        </div>
+
       </div>
 
-      <div class="b-example-divider"></div>
     </div>
+
+
+    <div class="b-shadow b-divider"></div>
 
     <div class="container">
       <footer class="py-3 my-4">
@@ -424,7 +450,7 @@
         </div>
       </div>
     </div>
-    
+
   </body>
 
     <script>
