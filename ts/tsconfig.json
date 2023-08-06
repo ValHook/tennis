@@ -9,6 +9,6 @@
     "skipLibCheck": true,
     "moduleResolution": "nodenext",
     "sourceMap": true,
-    "types": ["gapi", "gapi.auth2", "google.accounts", "gapi.client.sheets"]
+    "types": ["gapi", "gapi.auth2", "google.accounts", "gapi.client.sheets-v4"]
   }
 }
