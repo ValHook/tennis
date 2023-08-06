@@ -43,7 +43,7 @@
           <button class="nav-link active" id="tab-generate" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab" aria-controls="generate" aria-selected="false">Generate</button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" id="tab-json" data-bs-toggle="tab" data-bs-target="#json" type="button" role="tab" aria-controls="json" aria-selected="false">JSON</button>
+          <button class="nav-link disabled" id="tab-json" data-bs-toggle="tab" data-bs-target="#json" type="button" role="tab" aria-controls="json" aria-selected="false" aria-disabled="true">JSON</button>
         </li>
         <li class="nav-item">
           <button class="nav-link disabled" id="tab-table" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false" aria-disabled="true">Table</button>
@@ -351,7 +351,7 @@
 
             </form>
 
-            <button class="btn btn-primary btn-lg" id="generate">
+            <button class="btn btn-primary btn-lg" id="btn-generate">
                 Generate
             </button>
           </div>
@@ -412,7 +412,7 @@
                  data-bs-placement="top" data-bs-content="✅ Copied JSON">
                   Copy
               </button>
-              <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
+              <button class="btn btn-primary d-inline-flex d-none" id="btn-regenerate">
                   Regenerate variant
               </button>
             </div>

@@ -181,6 +181,9 @@ function Generate() {
   var triggerEl = document.querySelector("#tab-json");
   bootstrap.Tab.getInstance(triggerEl).show();
 
+  document.querySelector("#tab-json")?.removeAttribute("aria-disabled");
+  document.querySelector("#tab-json")?.classList.remove("disabled");
+
   Output(window.rosters);
 }
 
@@ -202,7 +205,7 @@ function OnDOMReady() {
     });
 
   // Generate, re-generate & copy buttons.
-  document.querySelectorAll<HTMLInputElement>("#generate, #regenerate").forEach((element) => {
+  document.querySelectorAll<HTMLInputElement>("#btn-generate, #btn-generate").forEach((element) => {
     element.addEventListener("click", (_) => {
       window.input = InputFromDOM();
       window.history.pushState(null, "", "#" + HashFromInput(window.input));

@@ -127,6 +127,8 @@ function Generate() {
     // Switch to the right tab
     var triggerEl = document.querySelector("#tab-json");
     bootstrap.Tab.getInstance(triggerEl).show();
+    document.querySelector("#tab-json")?.removeAttribute("aria-disabled");
+    document.querySelector("#tab-json")?.classList.remove("disabled");
     Output(window.rosters);
 }
 function OnDOMReady() {
@@ -145,7 +147,7 @@ function OnDOMReady() {
         ChangePlayerCount(parseInt(event?.target?.value));
     });
     // Generate, re-generate & copy buttons.
-    document.querySelectorAll("#generate, #regenerate").forEach((element) => {
+    document.querySelectorAll("#btn-generate, #btn-generate").forEach((element) => {
         element.addEventListener("click", (_) => {
             window.input = InputFromDOM();
             window.history.pushState(null, "", "#" + HashFromInput(window.input));

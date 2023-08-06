@@ -13,3 +13,7 @@
 .nb {
   border: none !important;
 }
+
+.nb .nav-link {
+  border-bottom: none !important;
+}
