@@ -1,8 +1,8 @@
-import { SessionFromInput, ComputeRosters } from "./algorithm";
-import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants";
-import { Prompt, PromptInt, Fail, Output } from "./prompt";
-import { Session, Input, StageRoster, Player } from "./types";
-import { Initialize, SignIn, SignOut, Export } from "./gapi";
+import { SessionFromInput, ComputeRosters } from "./algorithm.js";
+import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
+import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
+import { Session, Input, StageRoster, Player } from "./types.js";
+import { Initialize, SignIn, SignOut, Export } from "./gapi.js";
 
 declare global {
   interface Window {

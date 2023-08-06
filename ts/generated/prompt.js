@@ -1,3 +1,5 @@
+// @ts-ignore
+import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
 export function Prompt(id, ask) {
     Reset(id);
     const input = document.querySelector("#" + id);
@@ -38,9 +40,15 @@ export function Fail(id, output) {
         }
     }
     else {
-        Output(output);
+        Dialog("Error", output);
     }
     throw new Error(String(output));
+}
+export function Dialog(title, message) {
+    document.querySelector("#modalTitle").innerHTML = title;
+    const text = typeof message === "string" ? message : JSON.stringify(message, undefined, 2);
+    document.querySelector("#modalText").innerHTML = text;
+    new bootstrap.Modal("#modal", {}).show();
 }
 export function Output(output) {
     const out = typeof output === "string" ? output : JSON.stringify(output, undefined, 2);

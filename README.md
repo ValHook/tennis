@@ -25,7 +25,7 @@ You can then visit your locally served website at [http://localhost:8000](http:/
 For Google APIs, used for exporting Google Sheets, you will need to pull in the following dependencies through `npm`:
 
 ```
-npm install --save @types/gapi @types/gapi.auth2 @types/gapi.client.sheets-v4
+npm install --save bootstrap @types/bootstrap @types/gapi @types/gapi.auth2 @types/gapi.client.sheets-v4
 ```
 
 For compiling, you will need Typescript and a linter. To install them through `npm`, execute:

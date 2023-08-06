@@ -11,7 +11,7 @@ import {
   Constraints,
   Player,
   Stats,
-} from "./types";
+} from "./types.js";
 import {
   ConstraintsForRelaxingsCount,
   MAX_ATTEMPTS_TO_MAKE_ROTATION_PROPOSALS,
@@ -21,10 +21,10 @@ import {
   MAX_SIMULATION_TIME_SECONDS,
   NUM_PLAYERS_DOUBLE,
   NUM_PLAYERS_SINGLE,
-} from "./constants";
-import { StatusOr } from "./status";
-import { Rng, PopRandomElement, Mulberry32 } from "./rng";
-import { NChooseK, Quantile, Round } from "./math";
+} from "./constants.js";
+import { StatusOr } from "./status.js";
+import { Rng, PopRandomElement, Mulberry32 } from "./rng.js";
+import { NChooseK, Quantile, Round } from "./math.js";
 
 export function SessionFromInput(input: Input): Session {
   const courts = [...input.courts];

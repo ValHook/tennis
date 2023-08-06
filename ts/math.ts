@@ -1,4 +1,4 @@
-import { StatusOr } from "./status";
+import { StatusOr } from "./status.js";
 
 export function NChooseK(n: number, k: number) {
   return Factorial(n) / Factorial(k) / Factorial(n - k);

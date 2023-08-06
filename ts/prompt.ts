@@ -1,3 +1,6 @@
+// @ts-ignore
+import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
+
 export function Prompt(id: string, ask: string): string {
   Reset(id);
   const input = document.querySelector<HTMLInputElement>("#" + id);
@@ -46,9 +49,16 @@ export function Fail<T>(id: string, output: T) {
       (<HTMLElement>feedback[0]).innerText = String(output);
     }
   } else {
-    Output(output);
+    Dialog("Error", output);
   }
   throw new Error(String(output));
+}
+
+export function Dialog<T>(title: string, message: T) {
+  document.querySelector<HTMLInputElement>("#modalTitle")!.innerHTML = title;
+  const text = typeof message === "string" ? message : JSON.stringify(message, undefined, 2);
+  document.querySelector<HTMLInputElement>("#modalText")!.innerHTML = text;
+  new bootstrap.Modal("#modal", {}).show();
 }
 
 export function Output<T>(output: T) {

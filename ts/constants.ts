@@ -1,5 +1,5 @@
-import { NChooseK } from "./math";
-import { Constraints, HappeningType, Stage } from "./types";
+import { NChooseK } from "./math.js";
+import { Constraints, HappeningType, Stage } from "./types.js";
 
 export const NUM_PLAYERS_SINGLE = 2;
 export const NUM_PLAYERS_DOUBLE = 4;

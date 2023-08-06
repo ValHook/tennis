@@ -11,7 +11,8 @@ import {
   Constraints,
   Player,
   Stats,
-} from "./types";
+} from "./types.js";
+import { Dialog } from "./prompt.js";
 
 // Client ID and API key from the Developer Console
 const CLIENT_ID = "519347000672-447857bbs5d55adnk4cqi41vqc74ehgr.apps.googleusercontent.com";
@@ -228,10 +229,15 @@ export function Export(rosters: StageRoster[], callback: (spreadsheetUrl: string
       document.querySelector<HTMLInputElement>("#gapi_export")!.innerText = "Export";
       console.log("Spreadsheet ID: " + response.result.spreadsheetId);
       //document.querySelector<HTMLInputElement>("#content")?.innerHTML = `<a href="${url}" target="_blank">Spreadsheet</a>`;
+      Dialog(
+        "Exported",
+        `The roster has been successfully exported to <a href="${url}" target="_blank">a new spreadsheet</a>.`,
+      );
     });
   } catch (err) {
     //document.querySelector<HTMLInputElement>("#content")!.innerText = err.message;
     document.querySelector<HTMLInputElement>("#gapi_export")!.innerText = "Export";
+    Dialog("Error", err);
     return;
   }
 }
