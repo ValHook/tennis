@@ -1,5 +1,5 @@
-// @ts-ignore
-import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
+// The import is fine; it's just declared in the HTML
+declare var bootstrap: any;
 
 export function Prompt(id: string, ask: string): string {
   Reset(id);
