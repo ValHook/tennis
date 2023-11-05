@@ -1,5 +1,3 @@
-// @ts-ignore
-import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
 export function Prompt(id, ask) {
     Reset(id);
     const input = document.querySelector("#" + id);
