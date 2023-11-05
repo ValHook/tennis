@@ -36,9 +36,27 @@
       </header>
     </div>
 
-    <div class="b-example-divider"></div>
+    <!-- Tabs -->
+    <div class="b-shadow nav-tabs" id="navbar">
+      <ul class="container px-4 pt-1 nav nav-tabs nb">
+        <li class="nav-item">
+          <button class="nav-link active" id="tab-generate" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab" aria-controls="generate" aria-selected="false">Generate</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link disabled" id="tab-json" data-bs-toggle="tab" data-bs-target="#json" type="button" role="tab" aria-controls="json" aria-selected="false" aria-disabled="true">JSON</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link disabled" id="tab-table" data-bs-toggle="tab" data-bs-target="#table" type="button" role="tab" aria-controls="table" aria-selected="false" aria-disabled="true">Table</button>
+        </li>
+      </ul>
+    </div>
 
-      <div class="container px-4 pb-3">
+    <!-- Tab content -->
+    <div class="container px-4 pb-3 tab-content">
+
+      <!-- Tab 'generate' -->
+      <div class="tab-pane active" id="generate" role="tabpanel" aria-labelledby="tab-generate">
+
         <div class="row g-4 g-lg-5 py-5">
 
           <div class="col col-lg-8 d-flex flex-column gap-2">
@@ -333,7 +351,7 @@
 
             </form>
 
-            <button class="btn btn-primary btn-lg" id="generate">
+            <button class="btn btn-primary btn-lg" id="btn-generate">
                 Generate
             </button>
           </div>
@@ -342,7 +360,7 @@
             <div class="row row-cols-sm-1 g-4">
 
               <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a sheet?</h4>
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a sheet?</h3>
                 <p class="text-body-secondary mb-0">Sign in through your Google account to export to a Google Spreadsheet.</p>
                 <div>
                   <em id="gapi_busy">Loading…</em>
@@ -356,7 +374,7 @@
               </div>
 
               <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h4>
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Save this roster?</h3>
                 <p class="text-body-secondary mb-0">Copy the URL or bookmark this page to get back to this exact tennis roster.</p>
                 <div>
                   <button class="btn btn-primary d-block" id="copy-url"
@@ -368,7 +386,7 @@
               </div>
 
               <div class="col d-flex flex-column gap-2">
-                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a roster variant?</h4>
+                <h3 class="fw-semibold mb-0 text-body-emphasis">Want a roster variant?</h3>
                 <p class="text-body-secondary">
                   Each generated roster will be slightly different.
                 </p>
@@ -378,35 +396,42 @@
           </div>
 
         </div>
-      </div>
-      <div class="b-example-divider"></div>
 
-      <div class="d-none" id="outputBox">
-        <div class="container px-4 py-5">
-          <div class="row">
-            <pre id="output"></pre>
+      </div>
+
+      <div class="tab-pane" id="json" role="tabpanel" aria-labelledby="tab-json">
+
+        <div class="d-none" id="outputBox">
+          <div class="container px-4 py-5">
+            <div class="row">
+              <pre id="output"></pre>
+            </div>
+            <div class="col d-flex gap-2">
+              <button class="btn btn-primary d-inline-flex d-none" id="copy-json"
+                 data-bs-container="body" data-bs-toggle="popover" tabindex="0"
+                 data-bs-placement="top" data-bs-content="✅ Copied JSON">
+                  Copy
+              </button>
+              <button class="btn btn-primary d-inline-flex d-none" id="btn-regenerate">
+                  Regenerate variant
+              </button>
+            </div>
           </div>
-          <div class="col d-flex gap-2">
-            <button class="btn btn-primary d-inline-flex d-none" id="copy-json"
-               data-bs-container="body" data-bs-toggle="popover" tabindex="0"
-               data-bs-placement="top" data-bs-content="✅ Copied JSON">
-                Copy
-            </button>
-            <button class="btn btn-primary d-inline-flex d-none" id="regenerate">
-                Regenerate variant
-            </button>
-          </div>
+
         </div>
 
-        <div class="b-example-divider"></div>
       </div>
 
-      <div class="container">
-        <footer class="py-3 my-4">
-          <p class="text-center text-body-secondary">© 2023 <a href="https://github.com/ValHook/tennis" target="_blank">ValHook</a></p>
-        </footer>
-      </div>
-    </body>
+    </div>
+
+
+    <div class="b-shadow b-divider"></div>
+
+    <div class="container">
+      <footer class="py-3 my-4">
+        <p class="text-center text-body-secondary">© 2023 <a href="https://github.com/ValHook/tennis" target="_blank">ValHook</a></p>
+      </footer>
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -425,6 +450,8 @@
         </div>
       </div>
     </div>
+
+  </body>
 
     <script>
       // Enable Bootstrap popovers

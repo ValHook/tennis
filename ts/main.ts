@@ -3,6 +3,8 @@ import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
 import { Session, Input, StageRoster, Player } from "./types.js";
 import { Initialize, SignIn, SignOut, Export } from "./gapi.js";
+// @ts-ignore
+import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
 
 declare global {
   interface Window {
@@ -174,6 +176,14 @@ function Generate() {
   window.rosters = ComputeRosters(window.session, window.input.seed);
   document.getElementById("regenerate")?.classList.remove("d-none");
   document.getElementById("copy-json")?.classList.remove("d-none");
+
+  // Switch to the right tab
+  var triggerEl = document.querySelector("#tab-json");
+  bootstrap.Tab.getInstance(triggerEl).show();
+
+  document.querySelector("#tab-json")?.removeAttribute("aria-disabled");
+  document.querySelector("#tab-json")?.classList.remove("disabled");
+
   Output(window.rosters);
 }
 
@@ -195,7 +205,7 @@ function OnDOMReady() {
     });
 
   // Generate, re-generate & copy buttons.
-  document.querySelectorAll<HTMLInputElement>("#generate, #regenerate").forEach((element) => {
+  document.querySelectorAll<HTMLInputElement>("#btn-generate, #btn-generate").forEach((element) => {
     element.addEventListener("click", (_) => {
       window.input = InputFromDOM();
       window.history.pushState(null, "", "#" + HashFromInput(window.input));
@@ -226,6 +236,15 @@ function OnDOMReady() {
   });
   document.querySelector<HTMLInputElement>("#gapi_signout")?.addEventListener("click", (_) => {
     SignOut();
+  });
+
+  var triggerTabList = [].slice.call(document.querySelectorAll("#navbar button"));
+  triggerTabList.forEach(function (triggerEl: HTMLInputElement) {
+    var tabTrigger = new bootstrap.Tab(triggerEl);
+    triggerEl.addEventListener("click", function (event) {
+      event.preventDefault();
+      tabTrigger.show();
+    });
   });
 }
 
