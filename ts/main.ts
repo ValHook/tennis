@@ -3,8 +3,9 @@ import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
 import { Session, Input, StageRoster, Player } from "./types.js";
 import { Initialize, SignIn, SignOut, Export } from "./gapi.js";
-// @ts-ignore
-import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
+
+// The import is fine; it's just declared in the HTML
+declare var bootstrap: any;
 
 declare global {
   interface Window {

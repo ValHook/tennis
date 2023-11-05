@@ -2,8 +2,6 @@ import { SessionFromInput, ComputeRosters } from "./algorithm.js";
 import { MAX_COURTS, MAX_PLAYERS, NUM_PLAYERS_SINGLE } from "./constants.js";
 import { Prompt, PromptInt, Fail, Output } from "./prompt.js";
 import { Initialize, SignIn, SignOut, Export } from "./gapi.js";
-// @ts-ignore
-import * as bootstrap from "../../node_modules/bootstrap/dist/js/bootstrap.esm.min.js";
 function InputFromDOM() {
     const input = {
         match_duration: 0,
